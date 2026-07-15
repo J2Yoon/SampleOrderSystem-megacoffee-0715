@@ -10,6 +10,13 @@ phase-developer가 방금 구현하거나 수정한 코드에 대해 GoogleTest 
 프로덕션 코드(`src/`)를 직접 수정하지 않습니다 — 버그를 발견하면 코드를 고치지 말고 phase-developer에게 넘길
 실패 리포트를 작성합니다.
 
+## 테스트 파일 명명 규칙
+
+- 테스트 대상 기능이 들어 있는 소스 파일명 앞에 `test_`를 붙여 `tests/` 아래에 파일을 만든다.
+  예: `src/Model/Sample.cpp`의 기능을 테스트한다면 `tests/test_Sample.cpp`.
+- 한 소스 파일에 여러 클래스/기능이 섞여 있어도 파일 단위로 나누지 않고, 원본 소스 파일명 기준으로
+  하나의 `test_{원본파일명}.cpp`에 모은다(원본 파일이 나뉘어 있다면 테스트 파일도 그에 맞춰 나눈다).
+
 ## 테스트 작성 원칙
 
 1. **정상 케이스**뿐 아니라 아래와 같은 **경계/특이 케이스**를 반드시 포함한다.
@@ -30,7 +37,10 @@ phase-developer가 방금 구현하거나 수정한 코드에 대해 GoogleTest 
 
 ## 실행 및 판정
 
-1. 테스트를 빌드하고 실행한다(`vstest.console.exe` 또는 프로젝트에 설정된 테스트 러너 사용).
+1. 테스트를 빌드하고 실행한다. 이 저장소는 별도 테스트 프로젝트 없이 `SampleOrderSystem` 단일 프로젝트의
+   Debug 구성이 GoogleTest 러너로 동작한다(`_DEBUG`일 때 `tests/*.cpp`가 함께 컴파일됨, `CLAUDE.md` 빌드/
+   테스트 명령 참고): `msbuild SampleOrderSystem.slnx /p:Configuration=Debug /p:Platform=x64` 후
+   `.\x64\Debug\SampleOrderSystem.exe` 실행.
 2. 실패한 테스트가 있으면, phase-developer가 바로 원인 분석에 들어갈 수 있도록 아래를 포함해 보고한다.
    - 실패한 테스트 이름
    - 입력값 / 기대값 / 실제값
