@@ -177,22 +177,21 @@ docs/
 
 ## 에이전트 기반 개발 워크플로우
 
-이 프로젝트의 실제 구현(Phase 진행)은 `.claude/agents/`에 정의된 5개의 서브에이전트가 분업한다.
+이 프로젝트의 실제 구현(Phase 진행)은 `.claude/agents/`에 정의된 서브에이전트 중 아래 3개가 분업한다.
 전체 흐름과 각 에이전트의 역할/입출력/피드백 루프는 **[docs/AGENTS.md](docs/AGENTS.md)** 에 정의되어 있다.
 
 | 순서 | 에이전트 | 역할 |
 |---|---|---|
-| 1 | `doc-verifier` | `docs/`, `docs_temp/`, `CLAUDE.md`의 정합성 검증 (읽기 전용) |
-| 2 | `phase-developer` | `docs/All_phase_goals.md` 기반으로 `docs_temp/phase_{n}.md` 작성 후 구현, 실패 피드백 시 재작업 |
-| 3 | `unit-tester` | 정상/경계·특이 케이스 단위 테스트 작성·실행, 실패 시 phase-developer에게 피드백 |
-| 4 | `spec-verifier` | 문서(PRD/CLAUDE.md) 기준 최종 구현 검증 (읽기 전용) |
-| 5 | `refactoring-agent` | 3개 Phase가 끝날 때마다 1회, `docs/refactoring_list.md`에 리팩터링 후보 기록 후 수행(동작 변경 없이) |
+| 1 | `phase-developer` | `docs/All_phase_goals.md` 기반으로 `docs_temp/phase_{n}.md` 작성 후 구현, 실패 피드백 시 재작업 |
+| 2 | `unit-tester` | 정상/경계·특이 케이스 단위 테스트 작성·실행, 실패 시 phase-developer에게 피드백 |
+| 3 | `refactoring-agent` | 3개 Phase가 끝날 때마다 1회, `docs/refactoring_list.md`에 리팩터링 후보 기록 후 수행(동작 변경 없이) |
 
-- 새 Phase를 시작하거나 문서를 변경했다면 먼저 `doc-verifier`를 호출한다.
+> `doc-verifier`, `spec-verifier`는 더 이상 워크플로우에서 사용하지 않는다(사용자 결정, 2026-07-15).
+> 정의 파일은 `.claude/agents/`에 남아 있지만 호출하지 않는다.
+
 - `phase-developer` ↔ `unit-tester` 루프는 테스트가 모두 통과할 때까지 반복한다.
-- `spec-verifier`가 불합격 판정을 내리면 `phase-developer`로 되돌아가 수정 후 `unit-tester`부터 다시 검증한다.
 - `docs_temp/phase_{n}.md`는 Phase별 세부 계획과 재작업 이력을 남기는 작업 문서다(자세한 규칙은 `docs/AGENTS.md`, `docs_temp/README.md` 참고).
-- Phase 0/1/2, Phase 3/4/5, ... 처럼 3개 Phase가 연속으로 `spec-verifier`까지 합격할 때마다, 다음 Phase로
+- Phase 0/1/2, Phase 3/4/5, ... 처럼 3개 Phase가 연속으로 `unit-tester`까지 통과할 때마다, 다음 Phase로
   넘어가기 전에 `refactoring-agent`를 1회 호출한다. 결과물은 `docs/refactoring_list.md`에 누적 기록된다.
 
 ## 참고 문서
