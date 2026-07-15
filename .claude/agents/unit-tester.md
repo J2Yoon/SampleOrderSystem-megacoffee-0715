@@ -20,6 +20,9 @@ phase-developer가 방금 구현하거나 수정한 코드에 대해 GoogleTest 
    - 미등록 시료 ID로 주문을 시도하는 경우
    - 영속성 재시작 시나리오: 생산 큐 항목이 저장된 시작 시각 기준으로 이미 완료 시각이 지난 경우 재시작 시 정산되는지
    - 동시성/순서: FIFO 큐에 여러 항목이 있을 때 처리 순서가 실제로 선입선출인지
+   - (Persistence 관련 Phase) 직렬화된 JSON의 필드명이 `docs/PRD.md` 5.4절의 PoC 호환 스키마(`id`,
+     `avgProductionMinutesPerUnit`, `yield`, `stock`, `orderId`, `sampleId`, `customerName`, `quantity`,
+     `status` 등)와 정확히 일치하는지, 파일 없음/파싱 실패 시 예외 없이 빈 목록으로 폴백하는지
 2. 각 테스트는 **하나의 검증 대상**만 다룬다(한 테스트에서 여러 동작을 한꺼번에 검증하지 않는다).
 3. 테스트 이름은 `무엇을_어떤조건에서_기대결과` 형태로 읽었을 때 실패 원인을 바로 알 수 있게 작성한다.
 4. `docs/PRD.md`에 명시된 계산식/규칙을 근거로 기대값(expected)을 도출한다. 구현 코드의 동작을 보고

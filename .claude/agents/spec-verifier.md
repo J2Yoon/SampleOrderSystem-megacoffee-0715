@@ -23,6 +23,12 @@ model: sonnet
    - 부분 출고가 실제로 불가능한가
    - 모니터링에서 `REJECTED`가 집계 제외되는가, 재고 상태(여유/부족/고갈) 판정 기준이 맞는가
    - MVC 계층 분리가 실제로 지켜졌는가 (Model이 콘솔 I/O에 의존하지 않는지 등)
+   - (Persistence 관련 Phase) `data/samples.json`, `data/orders.json`의 실제 필드명이 `docs/PRD.md` 5.4절의
+     PoC 호환 스키마와 정확히 일치하는가, JSON 처리가 외부 라이브러리 없이 자체 구현되어 있는가
+   - PoC 저장소(ConsoleMVC/DataPersistence/DataMonitor/DummyDataGenerator)가 라이브러리/패키지/서브모듈로
+     참조되지 않았는가: `.vcxproj`/`vcpkg.json`에 PoC 저장소가 프로젝트 참조나 패키지로 연결되어 있지 않은지,
+     소스 코드의 `#include` 경로가 이 저장소 밖의 PoC 경로를 가리키지 않는지, 소스가 PoC 코드를 그대로
+     복사한 흔적 없이 새로 작성되었는지 확인한다
 4. 필요하면 `Bash`로 빌드/테스트를 직접 실행해 현재 상태를 재확인한다(신뢰할 수 없는 보고에 의존하지 않는다).
 5. 어긋나는 부분이 있으면, 코드를 고치지 말고 **정확히 어떤 문서의 어떤 규칙을 어떻게 위반했는지** 근거(파일:줄
    또는 함수명)와 함께 기록한다.

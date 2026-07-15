@@ -25,7 +25,7 @@
 | Dummy 데이터 생성 Tool | https://github.com/J2Yoon/DummyDataGenerator-megacoffee-0715.git |
 
 **산출물**
-- vcpkg 매니페스트(`vcpkg.json`) 구성, JSON 라이브러리(예: nlohmann/json) 및 GoogleTest 의존성 등록
+- vcpkg 매니페스트(`vcpkg.json`) 구성, GoogleTest 의존성만 등록(JSON은 외부 라이브러리를 쓰지 않고 PoC와 동일하게 자체 구현하므로 vcpkg 대상이 아님)
 - `CLAUDE.md`에 정의된 디렉터리 구조 생성: `src/Model`, `src/View`, `src/Controller`, `src/Persistence`, `tests/`
 - `.slnx`/`.vcxproj`에 테스트 프로젝트(`SampleOrderSystem.Tests`) 추가
 - `main` 진입점만 있는 최소 빌드 가능 상태
@@ -60,22 +60,31 @@
 
 **목표**: 모델을 JSON 파일로 저장/복원하는 Repository 계층을 구현하고 CRUD를 보장한다.
 
+**참고 PoC**: `DataPersistence`(구조 패턴)와 `DummyDataGenerator`/`DataMonitor`(스키마 호환성 검증)를 참고한다. 상세 패턴은 `CLAUDE.md`의 "PoC별 참고 포인트" 표 참고.
+
 **산출물**
-- `Persistence/SampleRepository`, `Persistence/OrderRepository`, `Persistence/ProductionQueueRepository`
-- JSON 직렬화/역직렬화 (모델 ↔ JSON)
-- 파일 없음/손상 시 초기 빈 상태로 안전하게 기동하는 로직
+- `Json/JsonValue`, `Json/JsonIO`: 외부 라이브러리 없이 PoC와 동일하게 자체 구현하는 JSON 값 표현/파서/직렬화기와 파일 read/write 유틸
+- `Persistence/ISampleRepository`, `Persistence/IOrderRepository`, `Persistence/IProductionQueueRepository`: CRUD(Create/GetAll/FindById/Update/Remove) 순수 가상 인터페이스
+- `Persistence/JsonSampleRepository`, `Persistence/JsonOrderRepository`, `Persistence/JsonProductionQueueRepository`: 위 인터페이스의 JSON 구현체. 생성자에서 `Load()` 후 CUD 시점마다 `Persist()`로 전체를 다시 기록(write-through)
+- 모델 ↔ JSON 매핑(`ToJson`/`FromJson`)은 각 Repository 구현체 내부에 배치
+- 파일 없음/파싱 실패 시 예외를 던지지 않고 빈 목록으로 안전하게 폴백하는 로직
+- 저장 파일은 `data/samples.json`, `data/orders.json`이며 `docs/PRD.md` 5.4절의 PoC 호환 스키마(필드명 포함)를 그대로 따른다
 
 **완료 조건(DoD)**
 - 저장 → 재시작(프로세스 재기동) → 로드 시 데이터 동일함을 확인하는 단위/통합 테스트 통과
 - CRUD(생성/조회/수정/삭제) 각각에 대한 테스트 존재
+- 파일이 없을 때 예외 없이 빈 목록으로 기동함을 확인하는 테스트 존재
+- (수동 검증) 옆 저장소의 `DummyDataGenerator.exe`로 이 프로젝트의 `data/` 폴더에 생성한 더미 데이터를 SampleOrderSystem이 오류 없이 읽어들이는지 확인
 
-**관련 PRD**: 1.3, 6(데이터 영속성)
+**관련 PRD**: 1.3, 5.4(JSON 파일 스키마), 6(데이터 영속성)
 
 ---
 
 ## Phase 3 — 시료 관리 기능
 
 **목표**: 콘솔에서 시료를 등록/조회/검색할 수 있게 한다(MVC 세 계층 모두 연결하는 첫 기능).
+
+**참고 PoC**: `ConsoleMVC`의 Controller/View 분리 및 명명 규칙(예: `SampleController`, `ConsoleView` 정적 I/O 헬퍼)을 참고한다.
 
 **산출물**
 - `Controller/SampleController`, `View/SampleView`
@@ -165,14 +174,18 @@
 
 **목표**: 상태별 주문 현황과 시료별 재고 현황(여유/부족/고갈)을 확인할 수 있게 한다.
 
+**참고 PoC**: `DataMonitor`의 `MonitoringService`처럼 집계 로직을 Repository/View와 분리한 순수 계산 서비스로 두는 구조와 `REJECTED` 제외 처리를 참고한다. 단, `DataMonitor`는 별도 실행파일(.exe)로 분리된 읽기 전용 프로세스이지만, 본 프로젝트의 모니터링은 **같은 프로세스 내 메뉴 기능**으로 통합한다(별도 exe로 분리하지 않는다).
+
 **산출물**
 - `Controller/MonitoringController`, `View/MonitoringView`
+- 집계 전담 순수 계산 서비스(예: `MonitoringService`, 파일 접근 없이 이미 로드된 데이터만으로 계산)
 - 상태별(RESERVED/CONFIRMED/PRODUCING/RELEASED) 집계, `REJECTED` 제외
 - 재고 상태 판정(여유/부족/고갈) 로직
 
 **완료 조건(DoD)**
 - 각 집계·판정 로직에 대한 단위 테스트 통과
 - `REJECTED` 주문이 집계에서 실제로 빠짐을 확인하는 테스트 존재
+- (수동 검증, 선택) 옆 저장소의 `DataMonitor.exe`를 이 프로젝트의 `data/` 폴더로 실행했을 때도 동일한 집계 결과가 나오는지 교차 확인
 
 **관련 PRD**: 4.5(모니터링)
 
@@ -190,6 +203,7 @@
 **완료 조건(DoD)**
 - 전체 시나리오(시료 등록 → 주문 접수 → 승인(재고부족) → 생산 대기/완료 → 출고 → 모니터링 확인)를 콘솔에서 처음부터 끝까지 수동으로 검증 가능
 - 종료 후 재시작해도 데이터와 생산 진행 상태가 올바르게 이어짐을 수동 검증
+- (선택) 옆 저장소의 `DummyDataGenerator.exe`로 이 프로젝트의 `data/` 폴더에 대량의 시료/주문 더미 데이터를 생성해 수동 시나리오 검증에 활용 가능
 
 **관련 PRD**: 4.1(메인 메뉴)
 

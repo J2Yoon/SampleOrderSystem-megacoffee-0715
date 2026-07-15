@@ -15,6 +15,13 @@
   `DataMonitor-...`, `DummyDataGenerator-...`)에서 개발된다.
 - 이 저장소(`SampleOrderSystem`)는 **본 프로젝트(반도체 시료 생산주문관리 시스템)만** 구현한다.
 - PoC 저장소의 코드/구조는 참고 자료일 뿐이며, 그대로 복사해오지 않고 본 프로젝트 구조(아래 아키텍처 절)에 맞게 구현한다.
+- **PoC 저장소를 라이브러리/패키지/서브모듈로 참조하지 않는다.** vcpkg 의존성, `#include` 경로, 프로젝트 참조
+  (project reference), NuGet/DLL 등 어떤 형태로도 PoC 저장소의 산출물을 이 저장소에 연결하거나 가져오지 않는다.
+  PoC의 `Json::Value`/`Json::FileIO`, Repository 패턴 등은 **개발 시점에 코드를 읽고 동일한 설계를 이 저장소
+  안에 처음부터 새로 작성**하는 방식으로만 활용한다(설계·네이밍·동작 방식을 유사하게 재구현하되, 실행 시점에
+  PoC 저장소의 코드나 바이너리에 의존하지 않는다). 단, `data/` 폴더의 JSON 파일 스키마를 호환되게 맞춤으로써
+  옆 저장소의 `DummyDataGenerator.exe`/`DataMonitor.exe` **실행 파일을 데이터 파일을 매개로 나란히 실행**하는
+  것은 가능하다 — 이는 코드/라이브러리 의존이 아니라 파일 포맷 호환일 뿐이다.
 - 실제로 개발에 참고할 4개 PoC 저장소는 다음과 같다.
 
 | PoC | 저장소 URL |
@@ -23,6 +30,43 @@
 | 데이터 영속성 처리 | https://github.com/J2Yoon/DataPersistence-megacoffee-0715.git |
 | 데이터 모니터링 Tool | https://github.com/J2Yoon/DataMonitor-megacoffee-0715.git |
 | Dummy 데이터 생성 Tool | https://github.com/J2Yoon/DummyDataGenerator-megacoffee-0715.git |
+
+### PoC별 참고 포인트 (구조 분석 결과 반영)
+
+4개 PoC는 로컬에서 `../ConsoleMVC`, `../DataPersistence`, `../DataMonitor`, `../DummyDataGenerator`로 확인 가능하며,
+공통적으로 `Models/`(순수 struct, 로직 없음) → `Repositories/`(`I{Entity}Repository` 인터페이스 + 구현체) →
+`Controllers`/`Services` → `Views`(콘솔 I/O 전담) 계층 구조와 아래 네이밍 컨벤션을 공유한다. **이 컨벤션을
+SampleOrderSystem에도 동일하게 적용한다.**
+
+- 클래스: `PascalCase`, 계층 접미사 포함(`OrderController`, `IOrderRepository`, `JsonOrderRepository`).
+- 인터페이스: `I` 접두사(`ISampleRepository`).
+- 메서드: `PascalCase` 동사형(`PlaceOrder`, `ApproveOrder`, `FindById`).
+- private 멤버 변수: `camelCase` + 트레일링 언더스코어(`orderRepository_`, `samples_`).
+- 파일명 = 클래스명, `.h`/`.cpp` 쌍으로 분리.
+- `main.cpp`에서 Repository 구체 클래스 → Controller(생성자 참조 주입) → View 순으로 수동 DI 조립(프레임워크 없음).
+- View는 Controller만 참조하고 Controller는 `<iostream>`을 모른다(콘솔 I/O는 View에만 존재).
+
+각 PoC에서 그대로 따를 패턴과 참고만 할 부분:
+
+| PoC | 그대로 따를 패턴 | 참고만 하고 새로 구현할 부분 |
+|---|---|---|
+| ConsoleMVC | Model/Repository/Controller/View 4계층 분리, `main.cpp` 수동 DI 조립, 메뉴 루프+switch 구조, `ConsoleView` 공용 I/O 헬퍼 분리 | `Sample`/`Order`/`ProductionJob` 필드와 Controller 분해 방식은 이 PoC 특유의 것이므로 PRD 기준으로 재설계. 생산 라인의 "실시간 경과 미반영(수동 완료 트리거)"은 PoC 한계이며 본 프로젝트에서는 반드시 실제 경과시간 기반으로 구현 |
+| DataPersistence | `I{Entity}Repository`(CRUD) + `Json{Entity}Repository` 구현 분리, 생성자에서 `Load()` 후 CUD마다 `Persist()`로 전체 재기록(write-through), 파일 없음/파싱 실패 시 예외 없이 빈 목록으로 폴백, `ToJson`/`FromJson`을 Repository의 private static 메서드로 배치 | Json/Repositories가 최상위 폴더에 있는 배치는 그대로 따르지 않고 `src/Persistence/`로 모은다. 무음(silent) 폴백 정책은 유지하되 필요 시 로깅 추가 고려 |
+| DataMonitor | 집계 로직을 Reader/Repository와 분리한 순수 계산 서비스(`MonitoringService`, static 메서드, 파일 접근 없음)로 두는 구조, `REJECTED` 상태를 집계에서 제외하는 처리 | 이 PoC는 **읽기 전용 별도 프로세스(별도 .exe)** 이지만, 본 프로젝트의 모니터링은 같은 프로세스 내 메뉴 기능으로 통합한다(별도 실행파일로 분리하지 않음). `Sleep`+`system("cls")` 워치 모드는 참고하지 않음 |
+| DummyDataGenerator | ID 시퀀스를 기존 데이터에서 파싱해 이어서 생성(추가 전용) 방식, `std::mt19937`+`discrete_distribution` 기반 가중치 랜덤 생성 아이디어 | 하드코딩된 소재/고객사 목록과 수치 범위는 예시일 뿐이므로 실제로 이 도구를 이 저장소에서 재구현하지 않는다(별도 저장소에서 이미 개발됨) |
+
+### 데이터 파일 스키마 (PoC 호환 — 중요)
+
+`DataPersistence`/`DataMonitor`/`DummyDataGenerator` 3개 PoC가 이미 서로 호환되는 JSON 스키마를 사용하고
+있으므로, SampleOrderSystem도 **동일한 필드명·파일명**을 채택한다. 이렇게 하면 옆 저장소의
+`DummyDataGenerator.exe`로 이 프로젝트의 `data/` 폴더에 더미 데이터를 생성하거나, `DataMonitor.exe`로
+같은 폴더를 실시간 모니터링하는 등 PoC 실행파일을 그대로 붙여 쓸 수 있다.
+
+- `data/samples.json`: 배열, 각 원소 필드 `id`, `name`, `avgProductionMinutesPerUnit`, `yield`, `stock`
+- `data/orders.json`: 배열, 각 원소 필드 `orderId`, `sampleId`, `customerName`, `quantity`, `status`
+- `status` 값은 대문자 영문 문자열(`RESERVED`/`REJECTED`/`PRODUCING`/`CONFIRMED`/`RELEASED`)로 저장한다.
+- 위 필드/파일 구성을 임의로 변경하지 않는다. PRD상 추가 필드(생성 일시 등)가 필요하면 기존 필드는 유지한 채
+  **추가만** 한다(PoC 호환성 유지).
 
 ## 기술 스택
 
@@ -33,10 +77,12 @@
 | 대상 플랫폼 | Win32 / x64 |
 | 애플리케이션 형태 | Console Application |
 | 데이터 영속성 | JSON 파일 |
+| JSON 처리 | 외부 라이브러리 미사용, PoC(DataPersistence/DataMonitor/DummyDataGenerator)와 동일하게 자체 구현한 `Json::Value`/`Json::FileIO` 사용 |
 | 단위 테스트 | GoogleTest (gtest) |
 
 현재 저장소에는 Visual Studio 프로젝트 스켈레톤(`SampleOrderSystem.slnx`, `SampleOrderSystem.vcxproj`)만 존재하며
-소스 코드는 아직 작성되지 않은 상태다. 의존성(JSON 라이브러리, gtest)은 vcpkg로 관리하는 것을 기본으로 한다.
+소스 코드는 아직 작성되지 않은 상태다. JSON 처리는 vcpkg 의존성 없이 PoC와 동일한 자체 구현(`Json::Value` 파서/직렬화기,
+`Json::FileIO` 파일 read/write)을 새로 작성한다. vcpkg는 GoogleTest(gtest) 의존성 관리에만 사용한다.
 
 ## 빌드 / 테스트 명령
 
@@ -59,10 +105,10 @@ vstest.console.exe .\x64\Debug\SampleOrderSystem.Tests.dll
 
 ```
 src/
-  Model/        # Sample, Order, ProductionQueueItem 등 도메인 모델 + 저장소(Repository) 인터페이스
+  Model/        # Sample, Order, ProductionQueueItem 등 순수 도메인 모델(struct/enum, 로직 없음)
   View/         # 콘솔 입출력 전담 (메뉴 렌더링, 입력 파싱은 하지 않고 표시만)
   Controller/   # 메뉴 흐름 제어, Model과 View를 연결, 도메인 규칙 적용
-  Persistence/  # JSON 파일 read/write, 데이터 로드·저장
+  Persistence/  # I{Entity}Repository 인터페이스 + Json{Entity}Repository 구현, Json::Value/Json::FileIO(자체 구현)
 tests/
   ...           # GoogleTest 기반 단위 테스트
 docs/
@@ -71,8 +117,10 @@ docs/
 
 - Model은 View나 콘솔 입출력에 의존하지 않는다.
 - View는 도메인 로직(재고 계산, 상태 전이 등)을 갖지 않는다. 표시만 담당한다.
-- Controller가 Model의 도메인 규칙 호출과 View의 출력 호출을 조율한다.
-- 신규 기능은 반드시 이 3계층 분리를 유지하며 추가한다.
+- Controller가 Model의 도메인 규칙 호출과 View의 출력 호출을 조율한다. Controller는 `<iostream>`에 의존하지 않는다.
+- Persistence는 `I{Entity}Repository`(순수 가상 인터페이스, Create/GetAll/FindById/Update/Remove) + `Json{Entity}Repository`(구현체)로 분리한다. 구현체는 생성자에서 `Load()`로 파일을 읽고, CUD 시점마다 `Persist()`로 전체를 다시 기록한다(write-through). 파일이 없거나 파싱에 실패하면 예외를 던지지 않고 빈 목록으로 폴백한다.
+- `main.cpp`에서 Repository → Controller → View 순으로 수동 생성자 주입(DI)으로 조립한다.
+- 신규 기능은 반드시 이 4계층 분리를 유지하며 추가한다.
 
 ## 핵심 도메인 규칙 (요약 — 전체는 PRD 참고)
 
@@ -89,7 +137,7 @@ docs/
 
 ## 코딩 컨벤션
 
-- 클래스/타입: `PascalCase`, 함수/메서드: `camelCase` 또는 프로젝트 내 기존 관례를 따른다(첫 파일 작성 시 일관성 있게 확정).
+- 클래스/타입: `PascalCase`, 함수/메서드: `PascalCase` 동사형(4개 PoC 컨벤션과 동일 — `PlaceOrder`, `ApproveOrder`, `FindById` 등).
 - 헤더/소스 분리(`.h` / `.cpp`)를 지키고, 헤더에는 최소한의 선언만 둔다.
 - 예외적인 입력(음수 수량, 미등록 시료 ID 등)은 시스템 경계(사용자 입력 처리 계층)에서만 검증한다. Model 내부 로직은 유효한 값이 들어온다고 가정한다.
 - 불필요한 주석을 달지 않는다. 이유(WHY)가 코드만으로 드러나지 않을 때만 짧게 남긴다.

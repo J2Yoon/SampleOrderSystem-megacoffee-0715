@@ -241,6 +241,17 @@ REJECTED      <재고 확인>
 | 생산 시작 시각 | 큐 진입/생산 시작 시각 |
 | 예상 완료 시각 | 생산 시작 시각 + 총 생산 시간 |
 
+### 5.4 JSON 파일 스키마 (PoC 호환)
+
+`DataPersistence`/`DataMonitor`/`DummyDataGenerator` 3개 PoC가 이미 서로 호환되는 스키마를 사용하므로,
+본 프로젝트도 동일한 필드명·파일명을 채택하여 해당 PoC 실행파일(더미 데이터 생성, 모니터링)을 이 저장소의
+`data/` 폴더에 그대로 붙여 쓸 수 있게 한다.
+
+- `data/samples.json`: 배열, 필드 `id`, `name`, `avgProductionMinutesPerUnit`, `yield`, `stock`
+- `data/orders.json`: 배열, 필드 `orderId`, `sampleId`, `customerName`, `quantity`, `status`
+- `status`는 `RESERVED`/`REJECTED`/`PRODUCING`/`CONFIRMED`/`RELEASED` 대문자 영문 문자열
+- 생산 큐(ProductionQueueItem) 등 PRD 전용 데이터를 위한 추가 파일/필드가 필요하면 위 필드는 유지한 채 확장한다.
+
 ## 6. 비기능 요구사항
 
 ### 6.1 저장소(Repository) 범위
@@ -248,6 +259,11 @@ REJECTED      <재고 확인>
   **이 저장소(SampleOrderSystem)에서 개발하지 않는다.** 각 PoC는 별도의 독립된 Repository에서 개발한다.
 - 이 저장소는 4개 PoC에서 검증된 구조/방식을 참고하여 **반도체 시료 생산주문관리 시스템 본 프로젝트**만을 구현하는 데 집중한다.
 - PoC 저장소가 먼저 만들어지면, 해당 GitHub 저장소 URL을 참고 자료로 확인하되 코드를 이 저장소로 그대로 옮겨오지 않고 본 프로젝트의 구조에 맞게 구현한다.
+- **PoC 저장소를 라이브러리/패키지/서브모듈로 참조하지 않는다.** vcpkg 의존성, 프로젝트 참조, 코드 복사·링크 등
+  어떤 형태로도 PoC 저장소의 산출물을 이 저장소에 연결하지 않는다. PoC의 구조와 방식은 **개발 시점에 읽고
+  동일한 설계를 이 저장소 안에 처음부터 새로 작성**하는 방식으로만 활용하며, 실행 시점에 PoC 저장소의 코드나
+  바이너리에 의존하지 않는다. 다만 `data/` 폴더의 JSON 파일 스키마(5.4절)를 호환되게 맞춤으로써 옆 저장소의
+  실행 파일(`DummyDataGenerator.exe`, `DataMonitor.exe`)을 데이터 파일을 매개로 나란히 실행하는 것은 가능하다.
 - 실제로 개발에 참고할 4개 PoC 저장소는 다음과 같다.
 
 | PoC | 저장소 URL |
@@ -257,7 +273,13 @@ REJECTED      <재고 확인>
 | 데이터 모니터링 Tool | https://github.com/J2Yoon/DataMonitor-megacoffee-0715.git |
 | Dummy 데이터 생성 Tool | https://github.com/J2Yoon/DummyDataGenerator-megacoffee-0715.git |
 
-- **데이터 영속성**: 파일, JSON, DB 등 팀(개인)이 선택한 방식으로 데이터를 저장·복원하며, CRUD를 지원해야 한다.
+각 PoC에서 참고할 핵심 포인트(상세는 `CLAUDE.md`의 "PoC별 참고 포인트" 참고):
+- ConsoleMVC: Model/Repository/Controller/View 4계층 분리와 `main.cpp` 수동 DI 조립 패턴
+- DataPersistence: `I{Entity}Repository`+`Json{Entity}Repository` 분리, write-through 저장, 파일 없음/파싱 실패 시 무음 폴백
+- DataMonitor: 집계 로직을 순수 계산 서비스로 분리하는 패턴, `REJECTED` 집계 제외 처리(단, 별도 프로세스가 아니라 본 프로젝트 메뉴에 통합)
+- DummyDataGenerator: ID 시퀀스 이어서 생성(추가 전용), JSON 스키마가 DataPersistence와 호환되도록 설계된 원칙
+
+- **데이터 영속성**: JSON 파일로 저장·복원하며, CRUD를 지원해야 한다. JSON 파싱/직렬화는 외부 라이브러리 없이 PoC와 동일하게 자체 구현(`Json::Value`/`Json::FileIO`)하고, 파일 스키마는 5.4절의 PoC 호환 스키마를 따른다.
 - **콘솔 UI**: 화면 구성은 자유롭게 결정 가능하나, 본 문서의 각 기능별 표시 항목(요약 정보, 목록, 상태 등)은 반영되어야 한다.
 - **아키텍처**: MVC(Model/Controller/View) 패키지 구조와 역할 분리를 갖춘다.
 - **개발 방법론(Agentic Engineering)**

@@ -29,6 +29,18 @@ model: sonnet
    문서 전반에서 동일하게 쓰이는지 확인한다 (예: `RELEASE`처럼 다른 표기가 섞여 있는지).
 5. **저장소 범위 명시 확인**: 4개 PoC(ConsoleMVC, DataPersistence, DataMonitor, DummyDataGenerator)가
    이 저장소에서 개발되지 않는다는 사실이 PRD.md와 CLAUDE.md에 여전히 명확히 남아 있는지 확인한다.
+5-1. **PoC 호환 스키마 일관성**: `docs/PRD.md` 5.4절과 `CLAUDE.md`의 데이터 파일 스키마(`data/samples.json`,
+   `data/orders.json`의 필드명)가 서로 동일하게 기술되어 있는지, 임의로 필드명이 달라지지 않았는지 확인한다.
+   또한 `docs/All_phase_goals.md` Phase 2 산출물이 이 스키마를 참조하고 있는지 확인한다.
+5-2. **JSON 라이브러리 일관성**: `CLAUDE.md`(기술 스택), `docs/PRD.md`(6.1), `docs/All_phase_goals.md`(Phase 0/2)가
+   모두 "외부 라이브러리 없이 자체 구현(Json::Value/Json::FileIO)" 방침으로 일관되게 기술되어 있는지 확인한다
+   (vcpkg+nlohmann/json 같은 상충되는 서술이 남아있지 않은지).
+5-3. **PoC "라이브러리 미참조" 원칙 일관성**: "PoC 저장소를 라이브러리/패키지/서브모듈로 참조하지 않고,
+   개발 시점에 읽고 참고하여 이 저장소 안에서 처음부터 새로 작성한다"는 원칙이 `CLAUDE.md`(저장소 범위 절),
+   `docs/PRD.md`(6.1), `.claude/agents/phase-developer.md`(도메인 규칙) 세 곳에서 서로 모순 없이 기술되어
+   있는지 확인한다. 단, `data/` 폴더 JSON 스키마 호환을 통해 옆 저장소의 실행파일(`DummyDataGenerator.exe`,
+   `DataMonitor.exe`)을 데이터 파일 매개로 나란히 실행하는 것은 예외적으로 허용된다는 점이 세 곳 모두 동일하게
+   반영되어 있는지도 함께 확인한다.
 6. **커밋 규칙 반영 확인**: CLAUDE.md가 `docs/git_rules/COMMIT_PREVENTION.md`를 올바르게 참조하고 있는지 확인한다.
 7. **날짜/버전 등 오래된 정보**: 문서에 남은 예시나 설명이 현재 코드 상태와 명백히 어긋나는지(코드가 이미 존재한다면
    `src/`, `tests/` 구조를 가볍게 훑어 문서 설명과 실제 디렉터리 구조가 크게 다르지 않은지) 확인한다.
