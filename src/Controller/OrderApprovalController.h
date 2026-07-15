@@ -54,14 +54,8 @@ namespace Controller
         OrderRejectionResult RejectOrder(const std::string& orderId);
 
     private:
-        // 실 생산량 = ceil(부족분 / 수율) (docs/PRD.md 4.6.1, 7절)
-        static int CalculateActualProductionQuantity(int shortageQuantity, double yield);
-
-        // 총 생산 시간 = 평균 생산시간 × 실 생산량 (docs/PRD.md 4.6.1)
-        static Model::ProductionQueueItem::MinutesDuration CalculateTotalProductionTime(
-            double averageProductionMinutesPerUnit, int actualProductionQuantity);
-
         // 승인 시점에 파생되는 생산 큐 항목을 생성한다(Factory Method — CLAUDE.md Clean Code 원칙 참고).
+        // 실 생산량/총 생산 시간 계산식은 ProductionCalculator(ProductionLineController와 공유)에 위임한다.
         static Model::ProductionQueueItem CreateProductionQueueItem(
             const Model::Order& order,
             const Model::Sample& sample,

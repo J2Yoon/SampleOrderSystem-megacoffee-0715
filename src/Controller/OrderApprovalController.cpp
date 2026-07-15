@@ -1,6 +1,6 @@
 #include "OrderApprovalController.h"
 
-#include <cmath>
+#include "ProductionCalculator.h"
 
 namespace Controller
 {
@@ -27,18 +27,6 @@ namespace Controller
         return reservedOrders;
     }
 
-    int OrderApprovalController::CalculateActualProductionQuantity(int shortageQuantity, double yield)
-    {
-        return static_cast<int>(std::ceil(static_cast<double>(shortageQuantity) / yield));
-    }
-
-    Model::ProductionQueueItem::MinutesDuration OrderApprovalController::CalculateTotalProductionTime(
-        double averageProductionMinutesPerUnit, int actualProductionQuantity)
-    {
-        return Model::ProductionQueueItem::MinutesDuration(
-            averageProductionMinutesPerUnit * actualProductionQuantity);
-    }
-
     Model::ProductionQueueItem OrderApprovalController::CreateProductionQueueItem(
         const Model::Order& order,
         const Model::Sample& sample,
@@ -46,9 +34,10 @@ namespace Controller
         Model::Order::TimePoint approvedAt)
     {
         const int actualProductionQuantity =
-            CalculateActualProductionQuantity(shortageQuantity, sample.GetYield());
+            ProductionCalculator::CalculateActualProductionQuantity(shortageQuantity, sample.GetYield());
         const auto totalProductionTime =
-            CalculateTotalProductionTime(sample.GetAverageProductionMinutesPerUnit(), actualProductionQuantity);
+            ProductionCalculator::CalculateTotalProductionTime(
+                sample.GetAverageProductionMinutesPerUnit(), actualProductionQuantity);
 
         return Model::ProductionQueueItem(
             order.GetOrderId(),
