@@ -46,6 +46,10 @@ namespace Controller
         // 현재 생산 중인 항목을 제외한 나머지 대기 큐를 FIFO 순서 그대로 반환한다.
         std::vector<Model::ProductionQueueItem> GetWaitingQueue() const;
 
+        // 큐에 남아있는 전체 항목 수(대기 중 + 현재 생산 중)를 반환한다. 메인 메뉴 요약 정보 등에서
+        // 사용하며, SettleCompletedItems 호출 이후(완료된 항목이 이미 제거된 상태) 사용을 전제로 한다.
+        int GetPendingItemCount() const;
+
     private:
         // 단일 라인은 한 번에 하나씩만 생산하므로, 앞선 항목이 끝나야 다음 항목이 시작될 수 있다는
         // 제약을 반영해 큐 전체의 실제 시작/완료 시각을 FIFO 순서대로 누적 계산한다.

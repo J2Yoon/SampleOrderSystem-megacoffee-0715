@@ -88,4 +88,9 @@ namespace Controller
         }
         return std::vector<Model::ProductionQueueItem>(allItems.begin() + 1, allItems.end());
     }
+
+    int ProductionLineController::GetPendingItemCount() const
+    {
+        return static_cast<int>(productionQueueRepository_.GetAll().size());
+    }
 }
