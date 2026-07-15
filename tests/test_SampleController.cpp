@@ -342,4 +342,47 @@ namespace
 
         EXPECT_FALSE(found.has_value());
     }
+
+    // ---- IncreaseStock ----
+
+    TEST_F(SampleControllerTest, 등록된_시료ID로_IncreaseStock을_호출하면_true를_반환한다)
+    {
+        SampleController controller(repository_);
+        controller.RegisterSample("S001", "Sample-A", 12.5, 0.9);
+
+        EXPECT_TRUE(controller.IncreaseStock("S001", 5));
+    }
+
+    TEST_F(SampleControllerTest, IncreaseStock_호출_후_재고가_증가량만큼_늘어난다)
+    {
+        SampleController controller(repository_);
+        controller.RegisterSample("S001", "Sample-A", 12.5, 0.9);
+
+        controller.IncreaseStock("S001", 5);
+
+        const auto found = controller.FindSampleById("S001");
+        ASSERT_TRUE(found.has_value());
+        EXPECT_EQ(found->GetStock(), 5);
+    }
+
+    TEST_F(SampleControllerTest, 기존_재고가_있는_상태에서_IncreaseStock을_호출하면_누적된다)
+    {
+        SampleController controller(repository_);
+        controller.RegisterSample("S001", "Sample-A", 12.5, 0.9);
+        Sample seeded("S001", "Sample-A", 12.5, 0.9, 10);
+        repository_.Update(seeded);
+
+        controller.IncreaseStock("S001", 8);
+
+        const auto found = controller.FindSampleById("S001");
+        ASSERT_TRUE(found.has_value());
+        EXPECT_EQ(found->GetStock(), 18);
+    }
+
+    TEST_F(SampleControllerTest, 미등록_시료ID로_IncreaseStock을_호출하면_false를_반환한다)
+    {
+        SampleController controller(repository_);
+
+        EXPECT_FALSE(controller.IncreaseStock("UNKNOWN", 5));
+    }
 }
