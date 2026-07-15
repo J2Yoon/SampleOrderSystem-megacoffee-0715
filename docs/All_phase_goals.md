@@ -25,14 +25,17 @@
 | Dummy 데이터 생성 Tool | https://github.com/J2Yoon/DummyDataGenerator-megacoffee-0715.git |
 
 **산출물**
-- vcpkg 매니페스트(`vcpkg.json`) 구성, GoogleTest 의존성만 등록(JSON은 외부 라이브러리를 쓰지 않고 PoC와 동일하게 자체 구현하므로 vcpkg 대상이 아님)
+- 단위 테스트(GoogleTest/GoogleMock) 의존성은 vcpkg가 아니라 클래식 NuGet 패키지(`gmock` 1.11.0, `packages.config`)로 등록(JSON은 외부 라이브러리를 쓰지 않고 PoC와 동일하게 자체 구현하므로 어떤 패키지 매니저 대상도 아님)
 - `CLAUDE.md`에 정의된 디렉터리 구조 생성: `src/Model`, `src/View`, `src/Controller`, `src/Persistence`, `src/Json`, `tests/`
-- `.slnx`/`.vcxproj`에 테스트 프로젝트(`SampleOrderSystem.Tests`) 추가
+- 테스트는 별도 프로젝트로 분리하지 않고 `SampleOrderSystem` 단일 프로젝트 안에 `RUN_TESTS` 전처리기 매크로로
+  진입점을 조건부 분기하여 포함(`src/main.cpp`가 `RUN_TESTS` 정의 여부에 따라 GoogleTest 러너 또는 실제 앱
+  진입점을 컴파일)하도록 `.vcxproj`를 구성
 - `main` 진입점만 있는 최소 빌드 가능 상태
 
 **완료 조건(DoD)**
-- `msbuild`로 빌드 성공
-- 빈 GoogleTest 스위트가 실행되어 통과(0개 테스트라도 실행 자체가 성공)
+- `msbuild`로 앱 빌드(기본 구성) 성공
+- `msbuild`에 `RunTests=true`를 전달한 빌드로 GoogleTest 러너가 포함된 실행 파일이 생성되고, 실행 시 빈
+  GoogleTest 스위트가 실행되어 통과(0개 테스트라도 실행 자체가 성공)
 
 **관련 PRD**: 1.3(시스템 형태), 6(비기능 요구사항 — 아키텍처/영속성)
 

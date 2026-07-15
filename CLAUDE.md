@@ -78,26 +78,30 @@ SampleOrderSystem에도 동일하게 적용한다.**
 | 애플리케이션 형태 | Console Application |
 | 데이터 영속성 | JSON 파일 |
 | JSON 처리 | 외부 라이브러리 미사용, PoC(DataPersistence/DataMonitor/DummyDataGenerator)와 동일하게 자체 구현한 `Json::Value`/`Json::FileIO` 사용 |
-| 단위 테스트 | GoogleTest (gtest) |
+| 단위 테스트 | GoogleTest/GoogleMock, NuGet 패키지(`gmock`, 1.11.0) 참조(`packages.config`)로 관리 |
 
 현재 저장소에는 Visual Studio 프로젝트 스켈레톤(`SampleOrderSystem.slnx`, `SampleOrderSystem.vcxproj`)만 존재하며
-소스 코드는 아직 작성되지 않은 상태다. JSON 처리는 vcpkg 의존성 없이 PoC와 동일한 자체 구현(`Json::Value` 파서/직렬화기,
-`Json::FileIO` 파일 read/write)을 새로 작성한다. vcpkg는 GoogleTest(gtest) 의존성 관리에만 사용한다.
+소스 코드는 아직 작성되지 않은 상태다. JSON 처리는 외부 의존성 없이 PoC와 동일한 자체 구현(`Json::Value` 파서/직렬화기,
+`Json::FileIO` 파일 read/write)을 새로 작성한다. 단위 테스트(GoogleTest/GoogleMock)는 vcpkg가 아니라 클래식
+NuGet 패키지(`gmock` 1.11.0, `packages.config`)로 관리하며, 이 저장소는 vcpkg를 사용하지 않는다.
 
 ## 빌드 / 테스트 명령
 
-```powershell
-# 빌드 (x64 Debug)
-msbuild SampleOrderSystem.slnx /p:Configuration=Debug /p:Platform=x64
+테스트는 별도 프로젝트(`.Tests.vcxproj`)로 분리하지 않고, `SampleOrderSystem` 단일 프로젝트 안에
+`RUN_TESTS` 전처리기 매크로로 진입점을 조건부 분기하여 포함한다(`src/main.cpp`가 `#ifdef RUN_TESTS`일 때는
+GoogleTest 러너를, 그렇지 않으면 실제 앱 진입점을 컴파일한다).
 
-# 실행
+```powershell
+# 앱 빌드 및 실행 (x64 Debug)
+msbuild SampleOrderSystem.slnx /p:Configuration=Debug /p:Platform=x64
 .\x64\Debug\SampleOrderSystem.exe
 
-# 테스트 프로젝트가 구성된 이후 (예: SampleOrderSystem.Tests)
-vstest.console.exe .\x64\Debug\SampleOrderSystem.Tests.dll
+# 테스트 빌드 및 실행 (동일 프로젝트, RUN_TESTS 매크로만 다르게 전달)
+msbuild SampleOrderSystem.slnx /p:Configuration=Debug /p:Platform=x64 /p:RunTests=true
+.\x64\Debug\SampleOrderSystem.exe
 ```
 
-테스트 프로젝트나 vcpkg 매니페스트가 아직 없다면, 작업을 시작하기 전에 먼저 구성한다(임의로 스킵하지 말 것).
+`packages.config`의 NuGet `gmock` 패키지가 아직 복원되지 않았다면, 작업을 시작하기 전에 먼저 복원한다(임의로 스킵하지 말 것).
 
 ## 아키텍처 (MVC)
 
