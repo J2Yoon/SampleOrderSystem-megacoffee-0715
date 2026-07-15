@@ -8,6 +8,14 @@
 "반도체 시료 생산주문관리 시스템" — 반도체 시료(Sample)의 등록, 주문 접수/승인/거절, 생산, 출고 전 과정을
 콘솔에서 관리하는 애플리케이션. 상세 기능 명세, 상태 전이, 계산식은 `docs/PRD.md` 참고.
 
+## 저장소 범위 (중요)
+
+- 미션에서 요구하는 4개의 PoC(MVC 스켈레톤 코드, 데이터 영속성 처리, 데이터 모니터링 Tool, Dummy 데이터 생성 Tool)는
+  **이 저장소에서 개발하지 않는다.** 각각 별도의 독립 Repository(예: `ConsoleMVC-...`, `DataPersistence-...`,
+  `DataMonitor-...`, `DummyDataGenerator-...`)에서 개발된다.
+- 이 저장소(`SampleOrderSystem`)는 **본 프로젝트(반도체 시료 생산주문관리 시스템)만** 구현한다.
+- PoC 저장소의 코드/구조는 참고 자료일 뿐이며, 그대로 복사해오지 않고 본 프로젝트 구조(아래 아키텍처 절)에 맞게 구현한다.
+
 ## 기술 스택
 
 | 항목 | 선택 |
@@ -39,7 +47,7 @@ vstest.console.exe .\x64\Debug\SampleOrderSystem.Tests.dll
 
 ## 아키텍처 (MVC)
 
-PoC 단계에서 검증한 MVC 스켈레톤 구조를 그대로 따른다.
+별도 PoC 저장소(`ConsoleMVC-...` 등)에서 검증된 MVC 구조를 참고하여, 이 저장소에서 아래 구조로 구현한다.
 
 ```
 src/
