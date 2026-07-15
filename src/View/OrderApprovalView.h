@@ -20,9 +20,6 @@ namespace View
         void HandleApprove();
         void HandleReject();
 
-        static void PrintOrderTableHeader();
-        static void PrintOrderRow(const Model::Order& order);
-
         Controller::OrderApprovalController& orderApprovalController_;
     };
 }

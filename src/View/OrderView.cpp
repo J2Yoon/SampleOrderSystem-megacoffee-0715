@@ -1,7 +1,5 @@
 #include "OrderView.h"
 
-#include <iomanip>
-#include <iostream>
 #include <string>
 
 #include "ConsoleView.h"
@@ -68,41 +66,10 @@ namespace View
     {
         const auto orders = orderController_.GetAllOrders();
         ConsoleView::PrintLine("전체 주문 목록 (총 " + std::to_string(orders.size()) + "건)");
-        PrintOrderTableHeader();
+        ConsoleView::PrintOrderTableHeader();
         for (const auto& order : orders)
         {
-            PrintOrderRow(order);
+            ConsoleView::PrintOrderRow(order);
         }
-    }
-
-    void OrderView::PrintOrderTableHeader()
-    {
-        std::cout << std::left << std::setw(20) << "주문번호" << std::setw(10) << "시료ID"
-            << std::setw(16) << "고객명" << std::setw(8) << "수량" << "상태\n";
-    }
-
-    void OrderView::PrintOrderRow(const Model::Order& order)
-    {
-        std::cout << std::left << std::setw(20) << order.GetOrderId() << std::setw(10) << order.GetSampleId()
-            << std::setw(16) << order.GetCustomerName() << std::setw(8) << order.GetQuantity()
-            << OrderStatusToDisplayText(order.GetStatus()) << "\n";
-    }
-
-    const char* OrderView::OrderStatusToDisplayText(Model::OrderStatus status)
-    {
-        switch (status)
-        {
-        case Model::OrderStatus::Reserved:
-            return "RESERVED";
-        case Model::OrderStatus::Rejected:
-            return "REJECTED";
-        case Model::OrderStatus::Producing:
-            return "PRODUCING";
-        case Model::OrderStatus::Confirmed:
-            return "CONFIRMED";
-        case Model::OrderStatus::Released:
-            return "RELEASED";
-        }
-        return "UNKNOWN";
     }
 }

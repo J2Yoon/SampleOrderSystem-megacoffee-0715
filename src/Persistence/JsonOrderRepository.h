@@ -33,9 +33,6 @@ namespace Persistence
         static Json::Value ToJson(const Model::Order& order);
         static Model::Order FromJson(const Json::Value& json);
 
-        static std::string OrderStatusToString(Model::OrderStatus status);
-        static Model::OrderStatus OrderStatusFromString(const std::string& statusText);
-
         static long long ToEpochMilliseconds(Model::Order::TimePoint timePoint);
         static Model::Order::TimePoint FromEpochMilliseconds(long long epochMilliseconds);
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace Model
 {
     // 주문 상태 (docs/PRD.md 3절 참고)
@@ -17,4 +19,10 @@ namespace Model
     //             PRODUCING -> CONFIRMED, CONFIRMED -> RELEASED
     // 그 외(REJECTED/RELEASED에서의 모든 전이, 자기 자신으로의 전이 등)는 모두 차단한다.
     bool IsValidOrderStatusTransition(OrderStatus from, OrderStatus to);
+
+    // OrderStatus <-> 대문자 영문 문자열("RESERVED" 등, docs/PRD.md/CLAUDE.md 데이터 스키마 규약) 변환.
+    // Persistence(JSON 직렬화)와 View(화면 표시)가 동일한 표준 표기를 공유하도록 단일 정의로 제공한다.
+    // 알 수 없는 값이 들어오면 ToString은 예외를 던지고, FromString은 Reserved로 안전하게 폴백한다.
+    std::string OrderStatusToString(OrderStatus status);
+    OrderStatus OrderStatusFromString(const std::string& statusText);
 }

@@ -1,7 +1,5 @@
 #include "OrderApprovalView.h"
 
-#include <iomanip>
-#include <iostream>
 #include <string>
 
 #include "ConsoleView.h"
@@ -50,10 +48,10 @@ namespace View
     {
         const auto reservedOrders = orderApprovalController_.GetReservedOrders();
         ConsoleView::PrintLine("접수 대기(RESERVED) 목록 (총 " + std::to_string(reservedOrders.size()) + "건)");
-        PrintOrderTableHeader();
+        ConsoleView::PrintOrderTableHeader();
         for (const auto& order : reservedOrders)
         {
-            PrintOrderRow(order);
+            ConsoleView::PrintOrderRow(order);
         }
     }
 
@@ -96,17 +94,5 @@ namespace View
             ConsoleView::PrintError("이미 최종 상태이거나 거절할 수 없는 주문입니다.");
             break;
         }
-    }
-
-    void OrderApprovalView::PrintOrderTableHeader()
-    {
-        std::cout << std::left << std::setw(20) << "주문번호" << std::setw(10) << "시료ID"
-            << std::setw(16) << "고객명" << std::setw(8) << "수량" << "상태\n";
-    }
-
-    void OrderApprovalView::PrintOrderRow(const Model::Order& order)
-    {
-        std::cout << std::left << std::setw(20) << order.GetOrderId() << std::setw(10) << order.GetSampleId()
-            << std::setw(16) << order.GetCustomerName() << std::setw(8) << order.GetQuantity() << "RESERVED\n";
     }
 }

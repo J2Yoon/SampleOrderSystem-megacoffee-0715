@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "../Model/Order.h"
+
 namespace View
 {
     // 콘솔 입출력을 담당하는 공용 View 헬퍼.
@@ -18,5 +20,9 @@ namespace View
         static std::string ReadLine(const std::string& prompt);
         static int ReadInt(const std::string& prompt);
         static double ReadDouble(const std::string& prompt);
+
+        // 주문 목록 표시 화면(OrderView/OrderApprovalView)에서 공통으로 쓰는 표 형식 출력.
+        static void PrintOrderTableHeader();
+        static void PrintOrderRow(const Model::Order& order);
     };
 }

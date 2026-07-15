@@ -1,6 +1,9 @@
 #include "ConsoleView.h"
 
+#include <iomanip>
 #include <iostream>
+
+#include "../Model/OrderStatus.h"
 
 namespace View
 {
@@ -80,5 +83,18 @@ namespace View
             }
             PrintError("숫자를 입력해주세요.");
         }
+    }
+
+    void ConsoleView::PrintOrderTableHeader()
+    {
+        std::cout << std::left << std::setw(20) << "주문번호" << std::setw(10) << "시료ID"
+            << std::setw(16) << "고객명" << std::setw(8) << "수량" << "상태\n";
+    }
+
+    void ConsoleView::PrintOrderRow(const Model::Order& order)
+    {
+        std::cout << std::left << std::setw(20) << order.GetOrderId() << std::setw(10) << order.GetSampleId()
+            << std::setw(16) << order.GetCustomerName() << std::setw(8) << order.GetQuantity()
+            << Model::OrderStatusToString(order.GetStatus()) << "\n";
     }
 }

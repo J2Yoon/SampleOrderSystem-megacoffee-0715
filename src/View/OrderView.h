@@ -19,10 +19,6 @@ namespace View
         void HandlePlaceOrder();
         void HandleListAll() const;
 
-        static void PrintOrderTableHeader();
-        static void PrintOrderRow(const Model::Order& order);
-        static const char* OrderStatusToDisplayText(Model::OrderStatus status);
-
         Controller::OrderController& orderController_;
     };
 }
