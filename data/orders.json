@@ -1,0 +1,18 @@
+[
+  {
+    "orderId": "ORD-20260715-0001",
+    "sampleId": "1",
+    "customerName": "sk하이닉스",
+    "quantity": 5,
+    "status": "PRODUCING",
+    "createdAtEpochMillis": 1784100485115
+  },
+  {
+    "orderId": "ORD-20260715-0002",
+    "sampleId": "2",
+    "customerName": "LG 이노텍",
+    "quantity": 3,
+    "status": "REJECTED",
+    "createdAtEpochMillis": 1784102826568
+  }
+]

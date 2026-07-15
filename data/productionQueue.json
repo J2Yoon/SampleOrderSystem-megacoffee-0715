@@ -1,0 +1,10 @@
+[
+  {
+    "orderId": "ORD-20260715-0001",
+    "shortageQuantity": 5,
+    "actualProductionQuantity": 17,
+    "totalProductionMinutes": 85,
+    "productionStartEpochMillis": 1784100532992,
+    "expectedCompletionEpochMillis": 1784105632992
+  }
+]
