@@ -15,6 +15,14 @@
   `DataMonitor-...`, `DummyDataGenerator-...`)에서 개발된다.
 - 이 저장소(`SampleOrderSystem`)는 **본 프로젝트(반도체 시료 생산주문관리 시스템)만** 구현한다.
 - PoC 저장소의 코드/구조는 참고 자료일 뿐이며, 그대로 복사해오지 않고 본 프로젝트 구조(아래 아키텍처 절)에 맞게 구현한다.
+- 실제로 개발에 참고할 4개 PoC 저장소는 다음과 같다.
+
+| PoC | 저장소 URL |
+|---|---|
+| MVC 스켈레톤 코드 | https://github.com/J2Yoon/ConsoleMVC-megacoffee-0715.git |
+| 데이터 영속성 처리 | https://github.com/J2Yoon/DataPersistence-megacoffee-0715.git |
+| 데이터 모니터링 Tool | https://github.com/J2Yoon/DataMonitor-megacoffee-0715.git |
+| Dummy 데이터 생성 Tool | https://github.com/J2Yoon/DummyDataGenerator-megacoffee-0715.git |
 
 ## 기술 스택
 

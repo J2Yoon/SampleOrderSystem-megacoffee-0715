@@ -16,6 +16,14 @@
 
 **목표**: 빈 Visual Studio 스켈레톤에 실제 개발을 시작할 수 있는 기반을 마련한다.
 
+**참고 저장소(PoC)**: 아래 4개 저장소는 별도로 개발된 PoC이며, 코드를 그대로 옮기지 않고 구조/방식만 참고한다(`CLAUDE.md` 저장소 범위 참고).
+| PoC | 저장소 URL |
+|---|---|
+| MVC 스켈레톤 코드 | https://github.com/J2Yoon/ConsoleMVC-megacoffee-0715.git |
+| 데이터 영속성 처리 | https://github.com/J2Yoon/DataPersistence-megacoffee-0715.git |
+| 데이터 모니터링 Tool | https://github.com/J2Yoon/DataMonitor-megacoffee-0715.git |
+| Dummy 데이터 생성 Tool | https://github.com/J2Yoon/DummyDataGenerator-megacoffee-0715.git |
+
 **산출물**
 - vcpkg 매니페스트(`vcpkg.json`) 구성, JSON 라이브러리(예: nlohmann/json) 및 GoogleTest 의존성 등록
 - `CLAUDE.md`에 정의된 디렉터리 구조 생성: `src/Model`, `src/View`, `src/Controller`, `src/Persistence`, `tests/`

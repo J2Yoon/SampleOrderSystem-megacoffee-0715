@@ -248,6 +248,14 @@ REJECTED      <재고 확인>
   **이 저장소(SampleOrderSystem)에서 개발하지 않는다.** 각 PoC는 별도의 독립된 Repository에서 개발한다.
 - 이 저장소는 4개 PoC에서 검증된 구조/방식을 참고하여 **반도체 시료 생산주문관리 시스템 본 프로젝트**만을 구현하는 데 집중한다.
 - PoC 저장소가 먼저 만들어지면, 해당 GitHub 저장소 URL을 참고 자료로 확인하되 코드를 이 저장소로 그대로 옮겨오지 않고 본 프로젝트의 구조에 맞게 구현한다.
+- 실제로 개발에 참고할 4개 PoC 저장소는 다음과 같다.
+
+| PoC | 저장소 URL |
+|---|---|
+| MVC 스켈레톤 코드 | https://github.com/J2Yoon/ConsoleMVC-megacoffee-0715.git |
+| 데이터 영속성 처리 | https://github.com/J2Yoon/DataPersistence-megacoffee-0715.git |
+| 데이터 모니터링 Tool | https://github.com/J2Yoon/DataMonitor-megacoffee-0715.git |
+| Dummy 데이터 생성 Tool | https://github.com/J2Yoon/DummyDataGenerator-megacoffee-0715.git |
 
 - **데이터 영속성**: 파일, JSON, DB 등 팀(개인)이 선택한 방식으로 데이터를 저장·복원하며, CRUD를 지원해야 한다.
 - **콘솔 UI**: 화면 구성은 자유롭게 결정 가능하나, 본 문서의 각 기능별 표시 항목(요약 정보, 목록, 상태 등)은 반영되어야 한다.
