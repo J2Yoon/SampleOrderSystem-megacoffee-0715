@@ -33,6 +33,7 @@ namespace View
         ConsoleView::PrintTitle("[4] 생산 라인");
         ConsoleView::PrintLine("[1] 현재 생산 현황   [2] 대기 큐 목록   [0] 뒤로");
         const int choice = ConsoleView::ReadInt("선택 > ");
+        ConsoleView::PrintLine();
 
         switch (choice)
         {

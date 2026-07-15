@@ -10,13 +10,13 @@ namespace View
     void ConsoleView::PrintTitle(const std::string& title)
     {
         PrintDivider();
-        std::cout << title << "\n";
+        std::cout << title << "\n\n";
         PrintDivider();
     }
 
     void ConsoleView::PrintLine(const std::string& text)
     {
-        std::cout << text << "\n";
+        std::cout << text << "\n\n";
     }
 
     void ConsoleView::PrintDivider()
@@ -26,7 +26,7 @@ namespace View
 
     void ConsoleView::PrintError(const std::string& message)
     {
-        std::cout << "[오류] " << message << "\n";
+        std::cout << "[오류] " << message << "\n\n";
     }
 
     std::string ConsoleView::ReadLine(const std::string& prompt)
@@ -95,6 +95,6 @@ namespace View
     {
         std::cout << std::left << std::setw(20) << order.GetOrderId() << std::setw(10) << order.GetSampleId()
             << std::setw(16) << order.GetCustomerName() << std::setw(8) << order.GetQuantity()
-            << Model::OrderStatusToString(order.GetStatus()) << "\n";
+            << Model::OrderStatusToString(order.GetStatus()) << "\n\n";
     }
 }

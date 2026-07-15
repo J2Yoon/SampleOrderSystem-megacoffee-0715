@@ -23,6 +23,7 @@ namespace View
         ConsoleView::PrintTitle("[5] 출고 처리");
         ConsoleView::PrintLine("[1] 출고 가능 목록   [2] 출고 처리   [0] 뒤로");
         const int choice = ConsoleView::ReadInt("선택 > ");
+        ConsoleView::PrintLine();
 
         switch (choice)
         {

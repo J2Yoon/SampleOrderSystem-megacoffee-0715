@@ -26,6 +26,7 @@ namespace View
         ConsoleView::PrintTitle("[1] 시료 관리");
         ConsoleView::PrintLine("[1] 시료 등록   [2] 시료 목록   [3] 시료 검색   [0] 뒤로");
         const int choice = ConsoleView::ReadInt("선택 > ");
+        ConsoleView::PrintLine();
 
         switch (choice)
         {
@@ -98,7 +99,7 @@ namespace View
     void SampleView::PrintSampleTableHeader()
     {
         std::cout << std::left << std::setw(10) << "ID" << std::setw(20) << "시료명"
-            << std::setw(16) << "평균생산시간" << std::setw(10) << "수율" << "재고\n";
+            << std::setw(16) << "평균생산시간\t" << std::setw(16) << "수율" << "재고\n";
     }
 
     void SampleView::PrintSampleRow(const Model::Sample& sample)

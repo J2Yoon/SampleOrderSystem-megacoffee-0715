@@ -47,6 +47,7 @@ namespace View
         ConsoleView::PrintTitle("[6] 모니터링");
         ConsoleView::PrintLine("[1] 상태별 주문 현황   [2] 시료별 재고 현황   [0] 뒤로");
         const int choice = ConsoleView::ReadInt("선택 > ");
+        ConsoleView::PrintLine();
 
         switch (choice)
         {

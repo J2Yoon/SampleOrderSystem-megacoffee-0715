@@ -57,6 +57,7 @@ namespace View
                 "[1] 시료 관리   [2] 주문 접수   [3] 주문 승인/거절   [4] 생산 라인   "
                 "[5] 출고 처리   [6] 모니터링   [0] 종료");
             const int choice = ConsoleView::ReadInt("선택 > ");
+            ConsoleView::PrintLine();
 
             switch (choice)
             {

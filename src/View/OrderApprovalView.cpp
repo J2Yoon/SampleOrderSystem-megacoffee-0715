@@ -24,6 +24,7 @@ namespace View
         ConsoleView::PrintTitle("[3] 주문 승인/거절");
         ConsoleView::PrintLine("[1] 접수 대기 목록   [2] 승인   [3] 거절   [0] 뒤로");
         const int choice = ConsoleView::ReadInt("선택 > ");
+        ConsoleView::PrintLine();
 
         switch (choice)
         {
