@@ -153,12 +153,25 @@
     <ClCompile Include="src\Model\Sample.cpp" />
     <ClCompile Include="src\Model\Order.cpp" />
     <ClCompile Include="src\Model\ProductionQueueItem.cpp" />
+    <ClCompile Include="src\Json\JsonValue.cpp" />
+    <ClCompile Include="src\Json\JsonIO.cpp" />
+    <ClCompile Include="src\Persistence\JsonSampleRepository.cpp" />
+    <ClCompile Include="src\Persistence\JsonOrderRepository.cpp" />
+    <ClCompile Include="src\Persistence\JsonProductionQueueRepository.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Model\OrderStatus.h" />
     <ClInclude Include="src\Model\Sample.h" />
     <ClInclude Include="src\Model\Order.h" />
     <ClInclude Include="src\Model\ProductionQueueItem.h" />
+    <ClInclude Include="src\Json\JsonValue.h" />
+    <ClInclude Include="src\Json\JsonIO.h" />
+    <ClInclude Include="src\Persistence\ISampleRepository.h" />
+    <ClInclude Include="src\Persistence\JsonSampleRepository.h" />
+    <ClInclude Include="src\Persistence\IOrderRepository.h" />
+    <ClInclude Include="src\Persistence\JsonOrderRepository.h" />
+    <ClInclude Include="src\Persistence\IProductionQueueRepository.h" />
+    <ClInclude Include="src\Persistence\JsonProductionQueueRepository.h" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile Include="tests\*.cpp" />
