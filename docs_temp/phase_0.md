@@ -16,7 +16,9 @@
   `%LOCALAPPDATA%\vcpkg\vcpkg.user.props`/`vcpkg.user.targets`가 자동으로 `Microsoft.Cpp.targets`에
   연결됨 → `VcpkgEnableManifest=true`만 vcxproj에 설정하면 별도 Import 없이 manifest 복원이 동작한다.
 
-## 설계 변경 사항 (사용자 직접 지시 반영)
+## 설계 변경 사항 (사용자 직접 지시 반영, 2차 재작업 시점 기준 — 이후 "4차 재작업"에서 `RUN_TESTS`/`RunTests`는
+`_DEBUG`/`Configuration` 기반으로 다시 변경됨. 최신 설계는 "이번 Phase 산출물 목록"과 "재작업 이력 > 4차
+재작업" 참고)
 - 테스트를 별도 프로젝트(`SampleOrderSystem.Tests.vcxproj`)로 만들지 않는다.
 - `SampleOrderSystem` 단일 프로젝트 안에서 `RUN_TESTS` 전처리기 매크로로 진입점을 조건부 분기한다:
   `src/main.cpp`가 `#ifdef RUN_TESTS`이면 GoogleTest 러너(`InitGoogleTest` + `RUN_ALL_TESTS()`)를,
@@ -32,49 +34,55 @@
    - `src/Model/`, `src/View/`, `src/Controller/`, `src/Persistence/`, `src/Json/`: 각 `.gitkeep`으로 빈 폴더 추적.
    - `tests/`: `.gitkeep`으로 빈 폴더 추적(테스트 소스 파일은 이후 Phase에서 unit-tester가 채움).
 
-2. **`src/main.cpp`**
-   - `#ifdef RUN_TESTS` 블록: `<gtest/gtest.h>` 포함, `::testing::InitGoogleTest(&argc, argv)` +
-     `return RUN_ALL_TESTS();`.
-   - `#else` 블록: 기존 최소 진입점(초기 메시지 출력 후 0 반환) 유지.
+2. **`src/main.cpp`** (4차 재작업 반영, 최신 상태)
+   - `#ifdef _DEBUG` 블록: `<gtest/gtest.h>` 포함, `::testing::InitGoogleTest(&argc, argv)` +
+     `return RUN_ALL_TESTS();`. `_DEBUG`는 Debug 구성에서 MSVC가 자동 정의하므로 별도 매크로 불필요.
+   - `#else` 블록(Release 구성, `NDEBUG`): 기존 최소 진입점(초기 메시지 출력 후 0 반환) 유지.
    - 파일을 UTF-8 BOM으로 저장하여 MSVC가 한글 리터럴을 코드페이지 949로 잘못 해석해 발생시키는
      `warning C4819`를 제거함(빌드 성공 여부에는 영향 없었으나 경고 없는 빌드를 위해 정리).
 
-3. **`SampleOrderSystem.vcxproj` 수정**
-   - `<PropertyGroup Label="Vcpkg"><VcpkgEnableManifest>true</VcpkgEnableManifest></PropertyGroup>` 추가.
-   - `<PropertyGroup><RunTests Condition="'$(RunTests)'==''">false</RunTests></PropertyGroup>` 추가
-     (커맨드라인에서 지정하지 않으면 일반 앱 빌드로 처리).
-   - `<ItemDefinitionGroup Condition="'$(RunTests)'=='true'">`를 4개 Configuration별
-     `ItemDefinitionGroup` 뒤에 추가하여:
-     - `ClCompile.PreprocessorDefinitions`에 `RUN_TESTS;%(PreprocessorDefinitions)` 추가.
-     - `Link.AdditionalDependencies`에 `gtest.lib;gtest_main.lib;gmock.lib;gmock_main.lib;%(AdditionalDependencies)`
-       추가(vcpkg gtest 포트는 Debug/Release 라이브러리 파일명에 `d` 접미사를 쓰지 않고 디렉터리로만
-       구분하며, `AdditionalLibraryDirectories`는 vcpkg 전역 통합 targets가 `lib`와 `lib\manual-link`를
-       구성별로 자동 추가하므로 별도 지정 불필요).
-   - `<ItemGroup Condition="'$(RunTests)'=='true'"><ClCompile Include="tests\*.cpp" /></ItemGroup>` 추가
-     — `tests/`가 비어 있어도 와일드카드가 매치되는 파일이 없으면 무해하게 통과.
+3. **`SampleOrderSystem.vcxproj` 수정** (4차 재작업 반영, 최신 상태)
+   - `<ItemGroup Condition="'$(Configuration)'=='Debug'"><ClCompile Include="tests\*.cpp" /></ItemGroup>`
+     추가 — `tests/`가 비어 있어도 와일드카드가 매치되는 파일이 없으면 무해하게 통과.
+   - `<ImportGroup Label="ExtensionTargets">`의 `gmock.targets` Import에
+     `Condition="'$(Configuration)'=='Debug' and Exists(...)"` 추가, `EnsureNuGetPackageBuildImports`
+     타겟에도 `Condition="'$(Configuration)'=='Debug'"` 추가 — Release 빌드에는 NuGet gmock 패키지의
+     `gtest-all.cc`/`gmock-all.cc` 소스가 전혀 컴파일 대상에 포함되지 않는다.
+   - vcpkg는 3차 재작업에서 완전히 제거되어 이 저장소에 존재하지 않는다.
 
-4. **`vcpkg.json`** (기존 유지)
-   - manifest 모드, `dependencies`에 `gtest`만 등록. gtest vcpkg 포트가 gmock/gmock_main도 함께
-     제공하므로 별도 의존성 추가 불필요(사용자가 언급한 "vcpkg로 gmock을 이미 설치" 상황과 일치).
+4. **`SampleOrderSystem.slnx`**: 별도 수정 없음(이미 단일 프로젝트만 참조하도록 정리되어 있음).
 
-5. **`SampleOrderSystem.slnx`**: 별도 수정 없음(이미 단일 프로젝트만 참조하도록 정리되어 있음).
-
-## 완료 조건(DoD) 검증 결과
-- 앱 빌드: `msbuild SampleOrderSystem.slnx -p:Configuration=Debug -p:Platform=x64` → exit code 0,
-  `x64\Debug\SampleOrderSystem.exe` 생성 및 정상 실행(초기 메시지 출력 후 0 반환) 확인.
-- 테스트 빌드: `msbuild SampleOrderSystem.slnx -p:Configuration=Debug -p:Platform=x64 -p:RunTests=true`
-  → exit code 0, 동일 경로의 `SampleOrderSystem.exe`가 GoogleTest 러너로 동작:
+## 완료 조건(DoD) 검증 결과 (4차 재작업 반영, 최신 상태)
+- Debug 빌드(테스트 실행): `msbuild SampleOrderSystem.slnx -p:Configuration=Debug -p:Platform=x64`
+  → exit code 0. `main.cpp`+`gtest-all.cc`+`gmock-all.cc` 컴파일, 실행 시:
   ```
   [==========] Running 0 tests from 0 test suites.
   [==========] 0 tests from 0 test suites ran. (0 ms total)
   [  PASSED  ] 0 tests.
   ```
   종료 코드 0 확인.
-- vcpkg manifest 최초 복원(gtest 1.17.0 및 의존 포트 vcpkg-cmake/vcpkg-cmake-config) 자동 실행 확인.
-  빌드 로그 말미에 `'pwsh.exe'은(는) ... 아닙니다` 메시지가 출력되지만 이는 vcpkg 바이너리 캐시 제출
-  단계(백그라운드, PowerShell 부재)에서 나는 무해한 경고이며 MSBuild 종료 코드에는 영향 없음(0으로 확인).
+- Release 빌드(앱 실행): `msbuild SampleOrderSystem.slnx -p:Configuration=Release -p:Platform=x64`
+  → exit code 0. `main.cpp`만 컴파일, 실행 시 앱 초기화 메시지 출력 후 종료 코드 0 확인.
 
 ## 재작업 이력
+
+### 4차 재작업: RunTests MSBuild 프로퍼티 → Configuration(Debug/Release) 기반 분기로 변경
+- **사용자 결정**: 커스텀 `RunTests` 프로퍼티(`/p:RunTests=true`)로 테스트 여부를 별도 지정하는 대신,
+  기존 Debug/Release 빌드 구성 자체를 기준으로 분기한다 — **Debug 빌드는 단위 테스트를 실행**하고,
+  **Release 빌드는 실제 앱으로 동작**한다.
+- **조치**:
+  - `src/main.cpp`: `#ifdef RUN_TESTS` → `#ifdef _DEBUG`로 변경. `_DEBUG`는 이미 Debug 구성의
+    `ClCompile.PreprocessorDefinitions`(`WIN32;_DEBUG;_CONSOLE` / `_DEBUG;_CONSOLE`)에 MSVC 기본값으로
+    포함되어 있으므로 별도 매크로 정의가 필요 없음.
+  - `SampleOrderSystem.vcxproj`: `RunTests` PropertyGroup과 `RunTests=='true'` 조건의
+    `ItemDefinitionGroup`(RUN_TESTS 정의)을 제거. `tests\*.cpp` 컴파일 조건, `gmock.targets` Import 조건,
+    `EnsureNuGetPackageBuildImports` 타겟 조건을 모두 `'$(RunTests)'=='true'`에서
+    `'$(Configuration)'=='Debug'`로 교체.
+  - `CLAUDE.md` 빌드/테스트 명령, `docs/All_phase_goals.md` Phase 0 DoD를
+    "Debug 빌드 = 테스트 실행 / Release 빌드 = 앱 실행" 기준으로 갱신.
+- **재검증 결과**: `Configuration=Debug`로 빌드 시 `main.cpp`+`gtest-all.cc`+`gmock-all.cc`가 컴파일되고
+  실행 결과가 `[PASSED] 0 tests`로 정상 출력됨(exit 0). `Configuration=Release`로 빌드 시 `main.cpp`만
+  컴파일되고 실행 시 실제 앱 진입점 메시지가 출력됨(exit 0).
 
 ### 3차 재작업: vcpkg gtest → NuGet gmock(1.11.0, packages.config)로 일원화
 - **문제**: unit-tester 검증 중 `.slnx`에 `SampleOrderSystem.Tests.vcxproj` 참조가 다시 나타나 앱 빌드가
