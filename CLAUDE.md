@@ -92,7 +92,25 @@ docs/
 - 핵심 요약: 의미 단위(Atomic)로 잘게 나누어 커밋, 커밋 전 테스트/빌드 확인, 정해진 커밋 메시지 형식(`type: 요약`) 사용, 커밋 실행 전 항상 변경 내역과 메시지를 사용자에게 먼저 보여주고 확인받는다.
 - 규칙과 실제 커밋 방식이 충돌하면 `docs/git_rules/COMMIT_PREVENTION.md`를 따른다.
 
+## 에이전트 기반 개발 워크플로우
+
+이 프로젝트의 실제 구현(Phase 진행)은 `.claude/agents/`에 정의된 4개의 서브에이전트가 분업한다.
+전체 흐름과 각 에이전트의 역할/입출력/피드백 루프는 **[docs/AGENTS.md](docs/AGENTS.md)** 에 정의되어 있다.
+
+| 순서 | 에이전트 | 역할 |
+|---|---|---|
+| 1 | `doc-verifier` | `docs/`, `docs_temp/`, `CLAUDE.md`의 정합성 검증 (읽기 전용) |
+| 2 | `phase-developer` | `docs/All_phase_goals.md` 기반으로 `docs_temp/phase_{n}.md` 작성 후 구현, 실패 피드백 시 재작업 |
+| 3 | `unit-tester` | 정상/경계·특이 케이스 단위 테스트 작성·실행, 실패 시 phase-developer에게 피드백 |
+| 4 | `spec-verifier` | 문서(PRD/CLAUDE.md) 기준 최종 구현 검증 (읽기 전용) |
+
+- 새 Phase를 시작하거나 문서를 변경했다면 먼저 `doc-verifier`를 호출한다.
+- `phase-developer` ↔ `unit-tester` 루프는 테스트가 모두 통과할 때까지 반복한다.
+- `spec-verifier`가 불합격 판정을 내리면 `phase-developer`로 되돌아가 수정 후 `unit-tester`부터 다시 검증한다.
+- `docs_temp/phase_{n}.md`는 Phase별 세부 계획과 재작업 이력을 남기는 작업 문서다(자세한 규칙은 `docs/AGENTS.md`, `docs_temp/README.md` 참고).
+
 ## 참고 문서
 
 - 기능 명세 / 도메인 규칙: [docs/PRD.md](docs/PRD.md)
 - 커밋 규칙: [docs/git_rules/COMMIT_PREVENTION.md](docs/git_rules/COMMIT_PREVENTION.md)
+- 에이전트 워크플로우: [docs/AGENTS.md](docs/AGENTS.md)
