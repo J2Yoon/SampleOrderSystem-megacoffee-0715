@@ -164,12 +164,15 @@
     <ClCompile Include="src\Controller\ProductionCalculator.cpp" />
     <ClCompile Include="src\Controller\ProductionLineController.cpp" />
     <ClCompile Include="src\Controller\ShipmentController.cpp" />
+    <ClCompile Include="src\Controller\MonitoringService.cpp" />
+    <ClCompile Include="src\Controller\MonitoringController.cpp" />
     <ClCompile Include="src\View\ConsoleView.cpp" />
     <ClCompile Include="src\View\SampleView.cpp" />
     <ClCompile Include="src\View\OrderView.cpp" />
     <ClCompile Include="src\View\OrderApprovalView.cpp" />
     <ClCompile Include="src\View\ProductionLineView.cpp" />
     <ClCompile Include="src\View\ShipmentView.cpp" />
+    <ClCompile Include="src\View\MonitoringView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Model\OrderStatus.h" />
@@ -191,12 +194,15 @@
     <ClInclude Include="src\Controller\ProductionCalculator.h" />
     <ClInclude Include="src\Controller\ProductionLineController.h" />
     <ClInclude Include="src\Controller\ShipmentController.h" />
+    <ClInclude Include="src\Controller\MonitoringService.h" />
+    <ClInclude Include="src\Controller\MonitoringController.h" />
     <ClInclude Include="src\View\ConsoleView.h" />
     <ClInclude Include="src\View\SampleView.h" />
     <ClInclude Include="src\View\OrderView.h" />
     <ClInclude Include="src\View\OrderApprovalView.h" />
     <ClInclude Include="src\View\ProductionLineView.h" />
     <ClInclude Include="src\View\ShipmentView.h" />
+    <ClInclude Include="src\View\MonitoringView.h" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile Include="tests\*.cpp" />
