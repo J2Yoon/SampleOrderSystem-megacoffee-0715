@@ -1,11 +1,17 @@
 #include "JsonProductionQueueRepository.h"
 
-#include <algorithm>
-
-#include "../Json/JsonIO.h"
+#include "JsonRepositoryUtil.h"
 
 namespace Persistence
 {
+    namespace
+    {
+        std::string GetProductionQueueItemKey(const Model::ProductionQueueItem& item)
+        {
+            return item.GetOrderId();
+        }
+    }
+
     JsonProductionQueueRepository::JsonProductionQueueRepository(std::string filePath)
         : filePath_(std::move(filePath))
     {
@@ -14,34 +20,12 @@ namespace Persistence
 
     void JsonProductionQueueRepository::Load()
     {
-        items_.clear();
-
-        const auto fileContents = Json::FileIO::ReadAllText(filePath_);
-        if (!fileContents.has_value())
-        {
-            return; // 파일이 없으면 빈 목록으로 시작한다(최초 실행 등).
-        }
-
-        Json::Value root;
-        if (!Json::Value::Parse(*fileContents, root) || !root.IsArray())
-        {
-            return; // 파싱 실패 시에도 예외 없이 빈 목록으로 폴백한다.
-        }
-
-        for (const auto& item : root.Items())
-        {
-            items_.push_back(FromJson(item));
-        }
+        items_ = JsonRepositoryUtil::LoadEntitiesFromFile<Model::ProductionQueueItem>(filePath_, &FromJson);
     }
 
     void JsonProductionQueueRepository::Persist() const
     {
-        Json::Value root = Json::Value::MakeArray();
-        for (const auto& item : items_)
-        {
-            root.Add(ToJson(item));
-        }
-        Json::FileIO::WriteAllText(filePath_, root.Dump());
+        JsonRepositoryUtil::PersistEntitiesToFile(filePath_, items_, &ToJson);
     }
 
     long long JsonProductionQueueRepository::ToEpochMilliseconds(Model::ProductionQueueItem::TimePoint timePoint)
@@ -99,8 +83,7 @@ namespace Persistence
 
     std::optional<Model::ProductionQueueItem> JsonProductionQueueRepository::FindById(const std::string& orderId) const
     {
-        const auto found = std::find_if(items_.begin(), items_.end(),
-            [&orderId](const Model::ProductionQueueItem& item) { return item.GetOrderId() == orderId; });
+        const auto found = JsonRepositoryUtil::FindIteratorByKey(items_, orderId, &GetProductionQueueItemKey);
 
         if (found == items_.end())
         {
@@ -111,8 +94,8 @@ namespace Persistence
 
     bool JsonProductionQueueRepository::Update(const Model::ProductionQueueItem& item)
     {
-        const auto found = std::find_if(items_.begin(), items_.end(),
-            [&item](const Model::ProductionQueueItem& existing) { return existing.GetOrderId() == item.GetOrderId(); });
+        const auto found = JsonRepositoryUtil::FindIteratorByKey(
+            items_, GetProductionQueueItemKey(item), &GetProductionQueueItemKey);
 
         if (found == items_.end())
         {
@@ -126,8 +109,7 @@ namespace Persistence
 
     bool JsonProductionQueueRepository::Remove(const std::string& orderId)
     {
-        const auto found = std::find_if(items_.begin(), items_.end(),
-            [&orderId](const Model::ProductionQueueItem& item) { return item.GetOrderId() == orderId; });
+        const auto found = JsonRepositoryUtil::FindIteratorByKey(items_, orderId, &GetProductionQueueItemKey);
 
         if (found == items_.end())
         {

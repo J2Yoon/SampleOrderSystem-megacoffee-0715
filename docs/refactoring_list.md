@@ -9,31 +9,35 @@
 
 ---
 
-## [ ] Repository 3종 간 CRUD 로직 중복 (DRY 위반)
+## [x] Repository 3종 간 CRUD 로직 중복 (DRY 위반)
 - 발견 시점: Phase 2 종료 후 (phase-developer가 구현 중 자체 발견)
-- 대상 파일: `src/Persistence/JsonSampleRepository.cpp:85-125`,
-  `src/Persistence/JsonOrderRepository.cpp:121-161`,
-  `src/Persistence/JsonProductionQueueRepository.cpp:100-140`
+- 대상 파일: `src/Persistence/JsonSampleRepository.cpp`, `src/Persistence/JsonOrderRepository.cpp`,
+  `src/Persistence/JsonProductionQueueRepository.cpp`
 - 문제: `JsonSampleRepository`, `JsonOrderRepository`, `JsonProductionQueueRepository`가
   `Load`/`Persist`/`FindById`/`Update`/`Remove`를 사실상 동일한 구조로 각각 재작성하고 있다.
   `std::find_if`로 키를 찾아 조회/수정/삭제하는 부분, `Load`에서 파일 없음/파싱 실패 시 빈 목록으로
   폴백하는 부분, `Persist`에서 배열 전체를 다시 덤프하는 부분이 세 클래스에 걸쳐 글자 그대로 반복된다.
   Repository가 하나 더 늘어나면 동일 로직을 네 곳에서 고쳐야 한다.
-- 조치: (미완료) `ToJson`/`FromJson`(엔티티별로 다름)과 키 추출자만 각 클래스가 제공하고, `Load`/
-  `Persist`/`FindById`/`Update`/`Remove`의 공통 뼈대는 별도로 뽑아내는 것을 검토(Template Method류).
-  단, CLAUDE.md가 패턴 남용을 금지하고 있고 현재는 Repository가 3개뿐이라 감내 가능한 수준의 중복이므로
-  4번째 Repository가 추가되는 시점, 또는 refactoring-agent가 여유가 있을 때 처리하는 것으로 보류했다.
-- 완료 시점: (비움)
+- 조치: 새 헤더 `src/Persistence/JsonRepositoryUtil.h`에 `LoadEntitiesFromFile`/`PersistEntitiesToFile`/
+  `FindIteratorByKey` 템플릿 함수(Template Method 방식)를 추출했다. 각 Repository는 엔티티별
+  `ToJson`/`FromJson`(기존 그대로 유지)과 키 추출 함수(`GetSampleKey`/`GetOrderKey`/
+  `GetProductionQueueItemKey`, 각 .cpp의 익명 네임스페이스에 배치)만 제공하고, `Load`/`Persist`/
+  `FindById`/`Update`/`Remove`의 몸체는 공용 유틸리티 호출로 대체했다. 클래스의 public 인터페이스,
+  파일 스키마, write-through/폴백 정책은 전혀 변경하지 않았다(순수 구현 세부사항 리팩터링).
+  `.vcxproj`/`.vcxproj.filters`에 새 헤더를 `ClInclude`로 추가했다.
+- 완료 시점: Phase 0~2 종료 후 리팩터링 에이전트 실행 (Debug/Release 빌드 및 GoogleTest 162개 전체 통과 확인)
 
-## [ ] OrderStatus 문자열 변환 스타일 불일치 (사소함)
+## [x] OrderStatus 문자열 변환 스타일 불일치 (사소함)
 - 발견 시점: Phase 2 종료 후 (phase-developer가 구현 중 자체 발견)
-- 대상 파일: `src/Model/OrderStatus.cpp:13-20`, `src/Persistence/JsonOrderRepository.cpp:48-69`
+- 대상 파일: `src/Model/OrderStatus.cpp`, `src/Persistence/JsonOrderRepository.cpp`
 - 문제: `OrderStatus.cpp`는 전이 테이블을 `constexpr std::array`로 선언형 관리하는데,
   `JsonOrderRepository::OrderStatusToString`/`OrderStatusFromString`은 `switch`/`if` 체인으로 되어 있어
   같은 저장소 안에서 스타일이 갈린다.
-- 조치: (미완료) 동일한 테이블 방식으로 통일하면 상태값 추가 시 실수 여지가 줄어든다. 다만 현재 5개
-  상태 수준에서는 가독성 차이가 크지 않아 우선순위가 낮다고 보류했다.
-- 완료 시점: (비움)
+- 조치: `JsonOrderRepository.cpp`의 익명 네임스페이스에 `OrderStatus.cpp`와 동일한 스타일의
+  `constexpr std::array<std::pair<Model::OrderStatus, const char*>, 5> kOrderStatusNames` 테이블을
+  추가하고, `OrderStatusToString`/`OrderStatusFromString`이 이 테이블을 순회하도록 바꿨다. 알 수 없는
+  값에 대한 예외 던짐(`ToString`)/`Reserved` 폴백(`FromString`) 동작은 그대로 유지했다.
+- 완료 시점: Phase 0~2 종료 후 리팩터링 에이전트 실행 (Debug/Release 빌드 및 GoogleTest 162개 전체 통과 확인)
 
 ## [ ] Controller 계층 패턴 적용 (미착수 — Controller 구현 이후 재검토)
 - 발견 시점: Phase 2 종료 후 (phase-developer가 구현 중 자체 발견)

@@ -172,6 +172,7 @@
     <ClInclude Include="src\Persistence\JsonOrderRepository.h" />
     <ClInclude Include="src\Persistence\IProductionQueueRepository.h" />
     <ClInclude Include="src\Persistence\JsonProductionQueueRepository.h" />
+    <ClInclude Include="src\Persistence\JsonRepositoryUtil.h" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile Include="tests\*.cpp" />

@@ -1,12 +1,34 @@
 #include "JsonOrderRepository.h"
 
-#include <algorithm>
+#include <array>
 #include <stdexcept>
+#include <utility>
 
-#include "../Json/JsonIO.h"
+#include "JsonRepositoryUtil.h"
 
 namespace Persistence
 {
+    namespace
+    {
+        std::string GetOrderKey(const Model::Order& order)
+        {
+            return order.GetOrderId();
+        }
+
+        using OrderStatusNamePair = std::pair<Model::OrderStatus, const char*>;
+
+        // OrderStatus <-> 문자열 매핑 테이블. Model::OrderStatus.cpp의 상태 전이 테이블과 동일하게
+        // 선언형 테이블 방식으로 관리해 상태값 추가 시 실수 여지를 줄인다.
+        constexpr std::array<OrderStatusNamePair, 5> kOrderStatusNames
+        {
+            OrderStatusNamePair{ Model::OrderStatus::Reserved,  "RESERVED" },
+            OrderStatusNamePair{ Model::OrderStatus::Rejected,  "REJECTED" },
+            OrderStatusNamePair{ Model::OrderStatus::Producing, "PRODUCING" },
+            OrderStatusNamePair{ Model::OrderStatus::Confirmed, "CONFIRMED" },
+            OrderStatusNamePair{ Model::OrderStatus::Released,  "RELEASED" },
+        };
+    }
+
     JsonOrderRepository::JsonOrderRepository(std::string filePath)
         : filePath_(std::move(filePath))
     {
@@ -15,56 +37,35 @@ namespace Persistence
 
     void JsonOrderRepository::Load()
     {
-        orders_.clear();
-
-        const auto fileContents = Json::FileIO::ReadAllText(filePath_);
-        if (!fileContents.has_value())
-        {
-            return; // 파일이 없으면 빈 목록으로 시작한다(최초 실행 등).
-        }
-
-        Json::Value root;
-        if (!Json::Value::Parse(*fileContents, root) || !root.IsArray())
-        {
-            return; // 파싱 실패 시에도 예외 없이 빈 목록으로 폴백한다.
-        }
-
-        for (const auto& item : root.Items())
-        {
-            orders_.push_back(FromJson(item));
-        }
+        orders_ = JsonRepositoryUtil::LoadEntitiesFromFile<Model::Order>(filePath_, &FromJson);
     }
 
     void JsonOrderRepository::Persist() const
     {
-        Json::Value root = Json::Value::MakeArray();
-        for (const auto& order : orders_)
-        {
-            root.Add(ToJson(order));
-        }
-        Json::FileIO::WriteAllText(filePath_, root.Dump());
+        JsonRepositoryUtil::PersistEntitiesToFile(filePath_, orders_, &ToJson);
     }
 
     std::string JsonOrderRepository::OrderStatusToString(Model::OrderStatus status)
     {
-        switch (status)
+        for (const auto& entry : kOrderStatusNames)
         {
-        case Model::OrderStatus::Reserved:  return "RESERVED";
-        case Model::OrderStatus::Rejected:  return "REJECTED";
-        case Model::OrderStatus::Producing: return "PRODUCING";
-        case Model::OrderStatus::Confirmed: return "CONFIRMED";
-        case Model::OrderStatus::Released:  return "RELEASED";
+            if (entry.first == status)
+            {
+                return entry.second;
+            }
         }
         throw std::invalid_argument("알 수 없는 OrderStatus 값입니다.");
     }
 
     Model::OrderStatus JsonOrderRepository::OrderStatusFromString(const std::string& statusText)
     {
-        if (statusText == "RESERVED")  return Model::OrderStatus::Reserved;
-        if (statusText == "REJECTED")  return Model::OrderStatus::Rejected;
-        if (statusText == "PRODUCING") return Model::OrderStatus::Producing;
-        if (statusText == "CONFIRMED") return Model::OrderStatus::Confirmed;
-        if (statusText == "RELEASED")  return Model::OrderStatus::Released;
+        for (const auto& entry : kOrderStatusNames)
+        {
+            if (statusText == entry.second)
+            {
+                return entry.first;
+            }
+        }
         return Model::OrderStatus::Reserved; // 알 수 없는 값은 안전하게 초기 상태로 폴백한다.
     }
 
@@ -120,8 +121,7 @@ namespace Persistence
 
     std::optional<Model::Order> JsonOrderRepository::FindById(const std::string& orderId) const
     {
-        const auto found = std::find_if(orders_.begin(), orders_.end(),
-            [&orderId](const Model::Order& order) { return order.GetOrderId() == orderId; });
+        const auto found = JsonRepositoryUtil::FindIteratorByKey(orders_, orderId, &GetOrderKey);
 
         if (found == orders_.end())
         {
@@ -132,8 +132,7 @@ namespace Persistence
 
     bool JsonOrderRepository::Update(const Model::Order& order)
     {
-        const auto found = std::find_if(orders_.begin(), orders_.end(),
-            [&order](const Model::Order& existing) { return existing.GetOrderId() == order.GetOrderId(); });
+        const auto found = JsonRepositoryUtil::FindIteratorByKey(orders_, GetOrderKey(order), &GetOrderKey);
 
         if (found == orders_.end())
         {
@@ -147,8 +146,7 @@ namespace Persistence
 
     bool JsonOrderRepository::Remove(const std::string& orderId)
     {
-        const auto found = std::find_if(orders_.begin(), orders_.end(),
-            [&orderId](const Model::Order& order) { return order.GetOrderId() == orderId; });
+        const auto found = JsonRepositoryUtil::FindIteratorByKey(orders_, orderId, &GetOrderKey);
 
         if (found == orders_.end())
         {
