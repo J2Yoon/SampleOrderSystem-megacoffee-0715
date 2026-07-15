@@ -286,7 +286,7 @@ REJECTED      <재고 확인>
   - CLAUDE.md, PRD.md 등 문서 기반 관리
   - Harness(테스트/검증 체계) 도입
   - Unit Test 작성
-  - Clean Code 준수
+  - Clean Code 준수(함수화/단일 책임, 의미 있는 변수·함수명, 매직 넘버 금지, 목적에 맞는 GoF 디자인 패턴 적용 — 상세는 `CLAUDE.md` "Clean Code 원칙" 절 참고)
   - 세분화된 커밋 이력 관리(의미 단위로 커밋)
 
 ## 7. 용어 정리
