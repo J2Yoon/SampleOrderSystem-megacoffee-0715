@@ -1,4 +1,4 @@
-﻿#ifdef RUN_TESTS
+﻿#ifdef _DEBUG
 
 #include <gtest/gtest.h>
 

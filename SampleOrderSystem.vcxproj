@@ -70,10 +70,6 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <!-- RunTests는 msbuild /p:RunTests=true 로 전달되며, 지정하지 않으면 일반 앱 빌드로 취급한다. -->
-  <PropertyGroup>
-    <RunTests Condition="'$(RunTests)'==''">false</RunTests>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -143,18 +139,14 @@
     </Manifest>
   </ItemDefinitionGroup>
   <!--
-    RunTests=true 로 빌드하면 tests/*.cpp 를 함께 컴파일하고, RUN_TESTS 전처리기 매크로를 정의해
-    src/main.cpp 가 GoogleTest 러너 진입점으로 컴파일되도록 한다(테스트 전용 별도 프로젝트를 두지 않음).
+    Configuration=Debug 빌드는 tests/*.cpp 를 함께 컴파일한다. src/main.cpp 는 _DEBUG(디버그 구성에서
+    MSVC가 자동 정의)가 정의되어 있으면 GoogleTest 러너 진입점으로, Release 구성(NDEBUG)에서는 실제 앱
+    진입점으로 컴파일된다(테스트 전용 별도 프로젝트/커스텀 프로퍼티 없이 Configuration만으로 분기).
   -->
-  <ItemDefinitionGroup Condition="'$(RunTests)'=='true'">
-    <ClCompile>
-      <PreprocessorDefinitions>RUN_TESTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
-  <ItemGroup Condition="'$(RunTests)'=='true'">
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile Include="tests\*.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,11 +154,11 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <!-- RunTests=true 로 빌드할 때만 gmock NuGet 패키지를 가져와 gtest-all.cc/gmock-all.cc 를 컴파일한다.
-         일반 앱 빌드에는 테스트 프레임워크 소스가 섞이지 않는다. -->
-    <Import Project="packages\gmock.1.11.0\build\native\gmock.targets" Condition="'$(RunTests)'=='true' and Exists('packages\gmock.1.11.0\build\native\gmock.targets')" />
+    <!-- Debug 구성일 때만 gmock NuGet 패키지를 가져와 gtest-all.cc/gmock-all.cc 를 컴파일한다.
+         Release 빌드에는 테스트 프레임워크 소스가 섞이지 않는다. -->
+    <Import Project="packages\gmock.1.11.0\build\native\gmock.targets" Condition="'$(Configuration)'=='Debug' and Exists('packages\gmock.1.11.0\build\native\gmock.targets')" />
   </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild" Condition="'$(RunTests)'=='true'">
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild" Condition="'$(Configuration)'=='Debug'">
     <PropertyGroup>
       <ErrorText>이 프로젝트는 이 컴퓨터에 없는 NuGet 패키지를 참조합니다. 해당 패키지를 다운로드하려면 NuGet 패키지 복원을 사용하십시오. 자세한 내용은 http://go.microsoft.com/fwlink/?LinkID=322105를 참조하십시오. 누락된 파일은 {0}입니다.</ErrorText>
     </PropertyGroup>
