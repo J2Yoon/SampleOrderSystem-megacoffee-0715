@@ -48,6 +48,10 @@ namespace Controller
         // 대상 시료가 없으면 false를 반환하고 아무 것도 하지 않는다.
         bool IncreaseStock(const std::string& sampleId, int increaseAmount);
 
+        // 출고 처리 시점에 출고 수량만큼 재고를 실제로 감소시킨다(docs/PRD.md 4.6.1, 4.7).
+        // 대상 시료가 없으면 false를 반환하고 아무 것도 하지 않는다.
+        bool DecreaseStock(const std::string& sampleId, int decreaseAmount);
+
     private:
         static bool IsValidRegistrationInput(
             const std::string& sampleId,

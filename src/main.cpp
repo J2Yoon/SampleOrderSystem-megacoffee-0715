@@ -19,6 +19,7 @@ int main(int argc, char** argv)
 #include "Controller/OrderController.h"
 #include "Controller/ProductionLineController.h"
 #include "Controller/SampleController.h"
+#include "Controller/ShipmentController.h"
 #include "Persistence/JsonOrderRepository.h"
 #include "Persistence/JsonProductionQueueRepository.h"
 #include "Persistence/JsonSampleRepository.h"
@@ -27,6 +28,7 @@ int main(int argc, char** argv)
 #include "View/OrderView.h"
 #include "View/ProductionLineView.h"
 #include "View/SampleView.h"
+#include "View/ShipmentView.h"
 
 namespace
 {
@@ -34,6 +36,7 @@ namespace
     constexpr int kTopMenuChoiceOrderManagement = 2;
     constexpr int kTopMenuChoiceOrderApproval = 3;
     constexpr int kTopMenuChoiceProductionLine = 4;
+    constexpr int kTopMenuChoiceShipment = 5;
     constexpr int kTopMenuChoiceExit = 0;
 }
 
@@ -66,18 +69,22 @@ int main()
         productionQueueRepository, orderRepository, sampleController);
     View::ProductionLineView productionLineView(productionLineController);
 
+    Controller::ShipmentController shipmentController(orderRepository, sampleController);
+    View::ShipmentView shipmentView(shipmentController);
+
     // 앱 시작(재시작 포함) 시점의 현재 시각을 기준으로, 그동안 완료됐어야 할 생산 큐 항목을 즉시
     // 일괄 정산한다(docs/PRD.md 4.6.4 — 백그라운드 타이머 없이 재시작 시점 기준으로 정산).
     productionLineController.SettleCompletedItems();
 
-    View::ConsoleView::PrintTitle("반도체 시료 생산주문관리 시스템 (Phase 6 - 시료/주문/승인·거절/생산 라인)");
-    View::ConsoleView::PrintLine("출고, 모니터링 메뉴는 이후 Phase에서 통합될 예정입니다.");
+    View::ConsoleView::PrintTitle("반도체 시료 생산주문관리 시스템 (Phase 7 - 시료/주문/승인·거절/생산 라인/출고)");
+    View::ConsoleView::PrintLine("모니터링 메뉴는 이후 Phase에서 통합될 예정입니다.");
 
     bool isRunning = true;
     while (isRunning)
     {
         View::ConsoleView::PrintLine();
-        View::ConsoleView::PrintLine("[1] 시료 관리   [2] 주문 접수   [3] 주문 승인/거절   [4] 생산 라인   [0] 종료");
+        View::ConsoleView::PrintLine(
+            "[1] 시료 관리   [2] 주문 접수   [3] 주문 승인/거절   [4] 생산 라인   [5] 출고 처리   [0] 종료");
         const int choice = View::ConsoleView::ReadInt("선택 > ");
 
         switch (choice)
@@ -99,6 +106,11 @@ int main()
             break;
         case kTopMenuChoiceProductionLine:
             while (productionLineView.ShowMenuAndHandleSelection())
+            {
+            }
+            break;
+        case kTopMenuChoiceShipment:
+            while (shipmentView.ShowMenuAndHandleSelection())
             {
             }
             break;

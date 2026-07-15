@@ -112,4 +112,17 @@ namespace Controller
         sample.SetStock(sample.GetStock() + increaseAmount);
         return sampleRepository_.Update(sample);
     }
+
+    bool SampleController::DecreaseStock(const std::string& sampleId, int decreaseAmount)
+    {
+        auto sampleOptional = sampleRepository_.FindById(sampleId);
+        if (!sampleOptional.has_value())
+        {
+            return false;
+        }
+
+        Model::Sample sample = *sampleOptional;
+        sample.SetStock(sample.GetStock() - decreaseAmount);
+        return sampleRepository_.Update(sample);
+    }
 }
