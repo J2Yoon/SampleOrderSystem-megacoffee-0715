@@ -14,5 +14,5 @@ Release/
 *.exe
 *.log
 
-# vcpkg
-vcpkg_installed/
+# NuGet (packages.config classic-style restore)
+packages/
