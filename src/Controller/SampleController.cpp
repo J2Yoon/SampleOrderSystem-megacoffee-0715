@@ -94,4 +94,9 @@ namespace Controller
     {
         return sampleRepository_.FindById(sampleId).has_value();
     }
+
+    std::optional<Model::Sample> SampleController::FindSampleById(const std::string& sampleId) const
+    {
+        return sampleRepository_.FindById(sampleId);
+    }
 }

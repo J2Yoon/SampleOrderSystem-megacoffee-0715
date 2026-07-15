@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -38,6 +39,10 @@ namespace Controller
 
         // 이후 단계(주문 접수 등)에서 미등록 시료를 참조하지 못하도록 검증할 때 사용한다(docs/PRD.md 4.2).
         bool IsSampleRegistered(const std::string& sampleId) const;
+
+        // 주문 승인 시점의 재고 조회 등, 시료 데이터(재고 포함)를 그대로 참조해야 하는 경우에 사용한다.
+        // 재고를 변경하지 않고 조회만 한다(docs/PRD.md 4.6.1).
+        std::optional<Model::Sample> FindSampleById(const std::string& sampleId) const;
 
     private:
         static bool IsValidRegistrationInput(

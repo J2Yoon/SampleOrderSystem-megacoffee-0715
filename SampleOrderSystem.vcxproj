@@ -160,9 +160,11 @@
     <ClCompile Include="src\Persistence\JsonProductionQueueRepository.cpp" />
     <ClCompile Include="src\Controller\SampleController.cpp" />
     <ClCompile Include="src\Controller\OrderController.cpp" />
+    <ClCompile Include="src\Controller\OrderApprovalController.cpp" />
     <ClCompile Include="src\View\ConsoleView.cpp" />
     <ClCompile Include="src\View\SampleView.cpp" />
     <ClCompile Include="src\View\OrderView.cpp" />
+    <ClCompile Include="src\View\OrderApprovalView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Model\OrderStatus.h" />
@@ -180,9 +182,11 @@
     <ClInclude Include="src\Persistence\JsonRepositoryUtil.h" />
     <ClInclude Include="src\Controller\SampleController.h" />
     <ClInclude Include="src\Controller\OrderController.h" />
+    <ClInclude Include="src\Controller\OrderApprovalController.h" />
     <ClInclude Include="src\View\ConsoleView.h" />
     <ClInclude Include="src\View\SampleView.h" />
     <ClInclude Include="src\View\OrderView.h" />
+    <ClInclude Include="src\View\OrderApprovalView.h" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile Include="tests\*.cpp" />
