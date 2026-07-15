@@ -99,4 +99,17 @@ namespace Controller
     {
         return sampleRepository_.FindById(sampleId);
     }
+
+    bool SampleController::IncreaseStock(const std::string& sampleId, int increaseAmount)
+    {
+        auto sampleOptional = sampleRepository_.FindById(sampleId);
+        if (!sampleOptional.has_value())
+        {
+            return false;
+        }
+
+        Model::Sample sample = *sampleOptional;
+        sample.SetStock(sample.GetStock() + increaseAmount);
+        return sampleRepository_.Update(sample);
+    }
 }

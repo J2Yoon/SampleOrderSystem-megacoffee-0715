@@ -44,6 +44,10 @@ namespace Controller
         // 재고를 변경하지 않고 조회만 한다(docs/PRD.md 4.6.1).
         std::optional<Model::Sample> FindSampleById(const std::string& sampleId) const;
 
+        // 생산 완료 시점에 실 생산량만큼 재고를 실제로 증가시킨다(docs/PRD.md 4.6.1).
+        // 대상 시료가 없으면 false를 반환하고 아무 것도 하지 않는다.
+        bool IncreaseStock(const std::string& sampleId, int increaseAmount);
+
     private:
         static bool IsValidRegistrationInput(
             const std::string& sampleId,
