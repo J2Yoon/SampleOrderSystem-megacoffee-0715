@@ -26,7 +26,7 @@
 
 **산출물**
 - vcpkg 매니페스트(`vcpkg.json`) 구성, GoogleTest 의존성만 등록(JSON은 외부 라이브러리를 쓰지 않고 PoC와 동일하게 자체 구현하므로 vcpkg 대상이 아님)
-- `CLAUDE.md`에 정의된 디렉터리 구조 생성: `src/Model`, `src/View`, `src/Controller`, `src/Persistence`, `tests/`
+- `CLAUDE.md`에 정의된 디렉터리 구조 생성: `src/Model`, `src/View`, `src/Controller`, `src/Persistence`, `src/Json`, `tests/`
 - `.slnx`/`.vcxproj`에 테스트 프로젝트(`SampleOrderSystem.Tests`) 추가
 - `main` 진입점만 있는 최소 빌드 가능 상태
 
@@ -63,7 +63,7 @@
 **참고 PoC**: `DataPersistence`(구조 패턴)와 `DummyDataGenerator`/`DataMonitor`(스키마 호환성 검증)를 참고한다. 상세 패턴은 `CLAUDE.md`의 "PoC별 참고 포인트" 표 참고.
 
 **산출물**
-- `Json/JsonValue`, `Json/JsonIO`: 외부 라이브러리 없이 PoC와 동일하게 자체 구현하는 JSON 값 표현/파서/직렬화기와 파일 read/write 유틸
+- `src/Json/JsonValue.h/.cpp`(`Json::Value` 클래스), `src/Json/JsonIO.h/.cpp`(`Json::FileIO` 클래스): 외부 라이브러리 없이 PoC와 동일하게 자체 구현하는 JSON 값 표현/파서/직렬화기와 파일 read/write 유틸
 - `Persistence/ISampleRepository`, `Persistence/IOrderRepository`, `Persistence/IProductionQueueRepository`: CRUD(Create/GetAll/FindById/Update/Remove) 순수 가상 인터페이스
 - `Persistence/JsonSampleRepository`, `Persistence/JsonOrderRepository`, `Persistence/JsonProductionQueueRepository`: 위 인터페이스의 JSON 구현체. 생성자에서 `Load()` 후 CUD 시점마다 `Persist()`로 전체를 다시 기록(write-through)
 - 모델 ↔ JSON 매핑(`ToJson`/`FromJson`)은 각 Repository 구현체 내부에 배치

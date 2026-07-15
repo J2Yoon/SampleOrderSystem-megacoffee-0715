@@ -108,7 +108,8 @@ src/
   Model/        # Sample, Order, ProductionQueueItem 등 순수 도메인 모델(struct/enum, 로직 없음)
   View/         # 콘솔 입출력 전담 (메뉴 렌더링, 입력 파싱은 하지 않고 표시만)
   Controller/   # 메뉴 흐름 제어, Model과 View를 연결, 도메인 규칙 적용
-  Persistence/  # I{Entity}Repository 인터페이스 + Json{Entity}Repository 구현, Json::Value/Json::FileIO(자체 구현)
+  Persistence/  # I{Entity}Repository 인터페이스 + Json{Entity}Repository 구현
+  Json/         # JsonValue.h/.cpp(Json::Value 클래스), JsonIO.h/.cpp(Json::FileIO 클래스) — 자체 구현 JSON 파서/직렬화기/파일 IO
 tests/
   ...           # GoogleTest 기반 단위 테스트
 docs/
