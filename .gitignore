@@ -1,0 +1,18 @@
+# Visual Studio
+.vs/
+*.user
+
+# Build output
+x64/
+x86/
+Win32/
+Debug/
+Release/
+*.obj
+*.pdb
+*.ilk
+*.exe
+*.log
+
+# vcpkg
+vcpkg_installed/
