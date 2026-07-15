@@ -308,4 +308,38 @@ namespace
 
         EXPECT_FALSE(controller.IsSampleRegistered("UNKNOWN"));
     }
+
+    // ---- FindSampleById ----
+
+    TEST_F(SampleControllerTest, 등록된_시료ID로_FindSampleById를_호출하면_값이_있는_옵셔널을_반환한다)
+    {
+        SampleController controller(repository_);
+        controller.RegisterSample("S001", "Sample-A", 12.5, 0.9);
+
+        const auto found = controller.FindSampleById("S001");
+
+        EXPECT_TRUE(found.has_value());
+    }
+
+    TEST_F(SampleControllerTest, FindSampleById가_반환한_시료의_재고는_저장소_값과_일치한다)
+    {
+        SampleController controller(repository_);
+        controller.RegisterSample("S001", "Sample-A", 12.5, 0.9);
+        Sample updated("S001", "Sample-A", 12.5, 0.9, 42);
+        repository_.Update(updated);
+
+        const auto found = controller.FindSampleById("S001");
+
+        ASSERT_TRUE(found.has_value());
+        EXPECT_EQ(found->GetStock(), 42);
+    }
+
+    TEST_F(SampleControllerTest, 미등록_시료ID로_FindSampleById를_호출하면_빈_옵셔널을_반환한다)
+    {
+        SampleController controller(repository_);
+
+        const auto found = controller.FindSampleById("UNKNOWN");
+
+        EXPECT_FALSE(found.has_value());
+    }
 }
